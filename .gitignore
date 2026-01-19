@@ -1,0 +1,21 @@
+# Visual Studio
+.vs/
+out/
+build/
+*.sln
+*.vcxproj
+*.user
+ipch/
+
+# vcpkg
+vcpkg_installed/
+
+# Logs
+logs/
+
+# Build artifacts
+bin/
+obj/
+*.exe
+*.pdb
+*.log

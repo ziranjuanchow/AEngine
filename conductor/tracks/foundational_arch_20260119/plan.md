@@ -2,15 +2,17 @@
 
 ## Phase 1: 基础子系统与工程环境搭建
 
-- [ ] Task: 初始化工程结构与 vcpkg 依赖环境
-    - [ ] 编写 CMakeLists.txt，配置 C++20/23 标准
-    - [ ] 配置 vcpkg.json，包含 spdlog, glfw3, glm, rttr, assimp, stb
-- [ ] Task: 实现日志子系统 (LogSubsystem)
-    - [ ] [TDD] 编写日志输出测试用例
-    - [ ] 封装 spdlog，实现 `AELog` 宏与级别控制
-- [ ] Task: 实现核心引擎类 (EngineCore) 与子系统管理
-    - [ ] [TDD] 编写子系统注册与生命周期测试
-    - [ ] 实现 `IEngineSubsystem` 接口与 `ASubsystemManager`
+- [x] Task: 初始化工程结构与 vcpkg 依赖环境
+    - [x] 编写 CMakeLists.txt，配置 C++20/23 标准
+    - [x] 配置 vcpkg.json，包含 spdlog, glfw3, glm, rttr, assimp, stb
+    - 已创建基础 main.cpp 用于验证。
+- [x] Task: 实现日志子系统 (LogSubsystem)
+    - [x] [TDD] 编写日志输出测试用例 (tests/LogTests.cpp)
+    - [x] 封装 spdlog，实现 `AELog` 宏与级别控制 (src/Core/Log.h/cpp)
+    - 已在 main.cpp 中集成验证。
+- [x] Task: 实现核心引擎类 (EngineCore) 与子系统管理
+    - [x] [TDD] 编写子系统注册与生命周期测试 (tests/EngineTests.cpp)
+    - [x] 实现 `IEngineSubsystem` 接口与 `ASubsystemManager` (src/Core/Subsystem.h, src/Core/Engine.h/cpp)
 - [ ] Task: Conductor - 用户手册验证 'Phase 1: 基础子系统与工程环境搭建' (Protocol in workflow.md)
 
 ## Phase 2: 插件系统原型与 ImGui 集成

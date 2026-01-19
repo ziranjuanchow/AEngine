@@ -1,6 +1,6 @@
 # Track 实施计划 - foundational_arch_20260119
 
-## Phase 1: 基础子系统与工程环境搭建
+## Phase 1: 基础子系统与工程环境搭建 [checkpoint: 2ca0b23]
 
 - [x] Task: 初始化工程结构与 vcpkg 依赖环境
     - [x] 编写 CMakeLists.txt，配置 C++20/23 标准

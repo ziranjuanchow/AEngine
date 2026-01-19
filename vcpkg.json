@@ -8,6 +8,7 @@
     "rttr",
     "assimp",
     "stb",
+    "glad",
     {
       "name": "imgui",
       "features": [

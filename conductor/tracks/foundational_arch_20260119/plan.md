@@ -17,15 +17,15 @@
 
 ## Phase 2: 插件系统原型与 ImGui 集成
 
-- [ ] Task: 实现插件加载机制 (PluginSystem)
-    - [ ] [TDD] 编写跨平台动态库加载测试
-    - [ ] 实现 `APluginManager`，支持 `Load/Unload`
-- [ ] Task: 集成 Dear ImGui 与 GLFW 窗口子系统
-    - [ ] [TDD] 编写窗口创建与事件响应测试
-    - [ ] 实现 `WindowSubsystem`，并初始化 ImGui OpenGL3 后端
-- [ ] Task: 实现第一个 ImGui 调试插件
-    - [ ] [TDD] 验证插件逻辑被成功调用
-    - [ ] 编写一个简单的性能监控面板插件
+- [x] Task: 实现插件加载机制 (PluginSystem)
+    - [x] [TDD] 编写跨平台动态库加载测试 (tests/PluginTests.cpp)
+    - [x] 实现 `APluginManager`，支持 `Load/Unload` (src/Core/PluginManager.h/cpp)
+- [x] Task: 集成 Dear ImGui 与 GLFW 窗口子系统
+    - [x] [TDD] 编写窗口创建与事件响应测试 (tests/WindowTests.cpp)
+    - [x] 实现 `WindowSubsystem`，并初始化 ImGui OpenGL3 后端 (src/Core/WindowSubsystem.h/cpp)
+- [x] Task: 实现第一个 ImGui 调试插件
+    - [x] [TDD] 验证插件逻辑被成功调用 (main.cpp 渲染循环)
+    - [x] 编写一个简单的性能监控面板插件 (plugins/StatsPanel/StatsPanel.cpp)
 - [ ] Task: Conductor - 用户手册验证 'Phase 2: 插件系统原型与 ImGui 集成' (Protocol in workflow.md)
 
 ## Phase 3: RHI 抽象层 (OpenGL) 与场景树

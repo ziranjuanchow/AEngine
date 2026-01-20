@@ -1,8 +1,0 @@
-{
-  "track_id": "foundational_arch_20260119",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-19T15:30:00Z",
-  "updated_at": "2026-01-19T15:30:00Z",
-  "description": "基础架构与 OpenGL RHI 验证：实现核心子系统架构、模块化插件系统原型、基于 OpenGL 4.6 的 RHI 抽象层，以及支持基础场景树的渲染循环。"
-}

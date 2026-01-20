@@ -22,6 +22,12 @@ layout (location = 10) uniform samplerCube irradianceMap;
 layout (location = 11) uniform samplerCube prefilterMap;
 layout (location = 12) uniform sampler2D brdfLUT;
 
+// Texture parameters
+layout (location = 13) uniform sampler2D albedoMap;
+layout (location = 14) uniform sampler2D normalMap;
+layout (location = 15) uniform int useAlbedoMap;
+layout (location = 16) uniform int useNormalMap;
+
 const float PI = 3.14159265359;
 
 // --- BRDF Functions ---
@@ -74,7 +80,15 @@ void main()
 
     // F0: Surface reflection at zero incidence
     vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+    
+    vec3 baseColor = albedo;
+    if (useAlbedoMap == 1) {
+        baseColor = texture(albedoMap, TexCoords).rgb;
+        // Assume sRGB texture, convert to linear
+        baseColor = pow(baseColor, vec3(2.2));
+    }
+
+    F0 = mix(F0, baseColor, metallic);
 
     // --- Direct Lighting ---
     vec3 Lo = vec3(0.0);
@@ -100,7 +114,7 @@ void main()
 
     float NdotL = max(dot(N, L), 0.0);        
 
-    Lo += (kD * albedo / PI + specular) * radiance * NdotL;
+    Lo += (kD * baseColor / PI + specular) * radiance * NdotL;
 
     // --- IBL Part ---
     vec3 F_ibl = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
@@ -110,7 +124,7 @@ void main()
     kD_ibl *= 1.0 - metallic;	  
     
     vec3 irradiance = texture(irradianceMap, N).rgb;
-    vec3 diffuse    = irradiance * albedo;
+    vec3 diffuse    = irradiance * baseColor;
     
     // Split-Sum approximation
     const float MAX_REFLECTION_LOD = 4.0;

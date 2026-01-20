@@ -5,6 +5,7 @@
 #include <vector>
 #include "../RHI/IRHIDevice.h"
 #include "../RHI/RHIDefinitions.h"
+#include "../RHI/IMaterial.h"
 
 namespace AEngine {
 
@@ -12,7 +13,7 @@ namespace AEngine {
         std::vector<FVertex> Vertices;
         std::vector<uint32_t> Indices;
         std::string Name;
-        // Material info will be added in Phase 2
+        std::shared_ptr<IMaterial> Material;
     };
 
     struct FModel {
@@ -22,6 +23,7 @@ namespace AEngine {
     class FAssetLoader {
     public:
         static std::shared_ptr<IRHITexture> LoadHDRTexture(const std::string& path);
+        static std::shared_ptr<IRHITexture> LoadTexture(const std::string& path, bool srgb = false);
         static std::shared_ptr<FModel> LoadModel(const std::string& path);
     };
 

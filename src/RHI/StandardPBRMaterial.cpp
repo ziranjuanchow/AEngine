@@ -1,6 +1,7 @@
 #include "StandardPBRMaterial.h"
 #include "../Core/ShaderCompiler.h"
 #include "../Core/Log.h"
+#include "OpenGL/OpenGLResources.h"
 #include <fstream>
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
@@ -90,6 +91,30 @@ namespace AEngine {
             glUniform1i(10, 0); 
             glUniform1i(11, 1); 
             glUniform1i(12, 2); 
+
+            // Material Textures
+            if (m_albedoMap) {
+                // Cast to OpenGL texture
+                // In a clean RHI, we would use IRHITexture interface or TextureView
+                // But we know it's FOpenGLTexture
+                auto* glTex = static_cast<FOpenGLTexture*>(m_albedoMap.get());
+                glActiveTexture(GL_TEXTURE3);
+                glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
+                glUniform1i(13, 3);
+                glUniform1i(15, 1); // useAlbedoMap = true
+            } else {
+                glUniform1i(15, 0);
+            }
+
+            if (m_normalMap) {
+                auto* glTex = static_cast<FOpenGLTexture*>(m_normalMap.get());
+                glActiveTexture(GL_TEXTURE4);
+                glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
+                glUniform1i(14, 4);
+                glUniform1i(16, 1); // useNormalMap = true
+            } else {
+                glUniform1i(16, 0);
+            }
         }
     }
 
@@ -104,6 +129,8 @@ namespace AEngine {
         else if (name == "model_matrix") m_model = std::get<glm::mat4>(value);
         else if (name == "view_matrix") m_view = std::get<glm::mat4>(value);
         else if (name == "projection_matrix") m_projection = std::get<glm::mat4>(value);
+        else if (name == "albedoMap") m_albedoMap = std::get<std::shared_ptr<IRHITexture>>(value);
+        else if (name == "normalMap") m_normalMap = std::get<std::shared_ptr<IRHITexture>>(value);
     }
 
 }

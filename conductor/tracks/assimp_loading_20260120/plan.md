@@ -16,11 +16,11 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Assimp 集成与基础解析' (Protocol in workflow.md)
 
 ## Phase 2: 材质与纹理自动化处理
-- [ ] Task: 实现纹理加载增强
-    - [ ] 优化 `FAssetLoader::LoadTexture`，支持自动检测文件是否存在
-- [ ] Task: 实现材质解析逻辑
-    - [ ] 从 `aiMaterial` 提取贴图路径
-    - [ ] 自动实例化 `FStandardPBRMaterial` 并绑定加载的纹理
+- [x] Task: 实现纹理加载增强
+    - [x] 优化 `FAssetLoader::LoadTexture`，支持自动检测文件是否存在 (src/Core/AssetLoader.h/cpp)
+- [x] Task: 实现材质解析逻辑
+    - [x] 从 `aiMaterial` 提取贴图路径 (src/Core/AssetLoader.cpp)
+    - [x] 自动实例化 `FStandardPBRMaterial` 并绑定加载的纹理
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: 材质与纹理自动化处理' (Protocol in workflow.md)
 
 ## Phase 3: RHI 转换与场景集成

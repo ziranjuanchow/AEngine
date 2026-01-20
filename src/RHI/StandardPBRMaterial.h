@@ -26,6 +26,12 @@ namespace AEngine {
         float m_roughness = 0.5f;
         float m_ao = 1.0f;
 
+        // Textures
+        std::shared_ptr<IRHITexture> m_albedoMap;
+        std::shared_ptr<IRHITexture> m_normalMap;
+        int m_useAlbedoMap = 0;
+        int m_useNormalMap = 0;
+
         // Global context parameters
         glm::vec3 m_lightPosition{ 0.0f };
         glm::vec3 m_lightColor{ 1.0f };

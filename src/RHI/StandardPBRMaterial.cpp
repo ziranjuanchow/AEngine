@@ -4,6 +4,8 @@
 #include <fstream>
 #include <sstream>
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace AEngine {
 
     FStandardPBRMaterial::FStandardPBRMaterial(const std::string& name)
@@ -62,6 +64,14 @@ namespace AEngine {
             glUniform1f(glGetUniformLocation(m_program, "metallic"), m_metallic);
             glUniform1f(glGetUniformLocation(m_program, "roughness"), m_roughness);
             glUniform1f(glGetUniformLocation(m_program, "ao"), m_ao);
+
+            glUniform3fv(glGetUniformLocation(m_program, "lightPosition"), 1, glm::value_ptr(m_lightPosition));
+            glUniform3fv(glGetUniformLocation(m_program, "lightColor"), 1, glm::value_ptr(m_lightColor));
+            glUniform3fv(glGetUniformLocation(m_program, "camPos"), 1, glm::value_ptr(m_camPos));
+
+            glUniformMatrix4fv(glGetUniformLocation(m_program, "model"), 1, GL_FALSE, glm::value_ptr(m_model));
+            glUniformMatrix4fv(glGetUniformLocation(m_program, "view"), 1, GL_FALSE, glm::value_ptr(m_view));
+            glUniformMatrix4fv(glGetUniformLocation(m_program, "projection"), 1, GL_FALSE, glm::value_ptr(m_projection));
         }
     }
 
@@ -70,6 +80,12 @@ namespace AEngine {
         else if (name == "metallic") m_metallic = std::get<float>(value);
         else if (name == "roughness") m_roughness = std::get<float>(value);
         else if (name == "ao") m_ao = std::get<float>(value);
+        else if (name == "lightPosition") m_lightPosition = std::get<glm::vec3>(value);
+        else if (name == "lightColor") m_lightColor = std::get<glm::vec3>(value);
+        else if (name == "camPos") m_camPos = std::get<glm::vec3>(value);
+        else if (name == "model_matrix") m_model = std::get<glm::mat4>(value);
+        else if (name == "view_matrix") m_view = std::get<glm::mat4>(value);
+        else if (name == "projection_matrix") m_projection = std::get<glm::mat4>(value);
     }
 
 }

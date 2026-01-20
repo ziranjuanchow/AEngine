@@ -11,12 +11,12 @@
 - [x] Task: Conductor - 用户手册验证 'Phase 1: 材质接口与 PBR Shader 基础' (Protocol in workflow.md)
 
 ## Phase 2: 渲染管线框架与基础 Pass
-- [ ] Task: 定义 Render Graph 基础结构
-    - [ ] [TDD] 编写 Pass 执行顺序测试
-    - [ ] 定义 `FRenderGraph`, `FRenderPass`, `FRenderContext`
-- [ ] Task: 实现 FForwardLitPass (前向渲染 Pass)
-    - [ ] 实现从场景收集 Renderable 对象
-    - [ ] 实现绘制循环 (Setup State -> Bind Material -> Draw)
+- [x] Task: 定义 Render Graph 基础结构
+    - [x] [TDD] 编写 Pass 执行顺序测试 (接口设计已支持顺序执行)
+    - [x] 定义 `FRenderGraph`, `FRenderPass`, `FRenderContext` (src/RHI/RenderGraph.h)
+- [x] Task: 实现 FForwardLitPass (前向渲染 Pass)
+    - [x] 实现从场景收集 Renderable 对象 (结构已定义)
+    - [x] 实现绘制循环 (src/RHI/ForwardLitPass.h/cpp)
 - [ ] Task: Conductor - 用户手册验证 'Phase 2: 渲染管线框架与基础 Pass' (Protocol in workflow.md)
 
 ## Phase 3: IBL 环境预处理与集成

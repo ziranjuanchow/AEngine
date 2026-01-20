@@ -10,7 +10,7 @@
 namespace AEngine {
 
     // Material Parameter Types
-    using FMaterialParamValue = std::variant<float, glm::vec3, glm::vec4, std::shared_ptr<IRHITexture>>;
+    using FMaterialParamValue = std::variant<float, glm::vec3, glm::vec4, glm::mat4, std::shared_ptr<IRHITexture>>;
 
     struct FMaterialParameter {
         std::string Name;

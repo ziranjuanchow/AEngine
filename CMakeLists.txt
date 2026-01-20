@@ -38,6 +38,7 @@ add_executable(AEngine
     src/RHI/OpenGL/OpenGLCommandBuffer.cpp
     src/RHI/OpenGL/OpenGLDevice.cpp
     src/RHI/StandardPBRMaterial.cpp
+    src/RHI/ForwardLitPass.cpp
 )
 
 target_link_libraries(AEngine PRIVATE 

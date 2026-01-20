@@ -25,6 +25,15 @@ namespace AEngine {
         float m_metallic = 0.0f;
         float m_roughness = 0.5f;
         float m_ao = 1.0f;
+
+        // Global context parameters
+        glm::vec3 m_lightPosition{ 0.0f };
+        glm::vec3 m_lightColor{ 1.0f };
+        glm::vec3 m_camPos{ 0.0f };
+
+        glm::mat4 m_model{ 1.0f };
+        glm::mat4 m_view{ 1.0f };
+        glm::mat4 m_projection{ 1.0f };
     };
 
 }

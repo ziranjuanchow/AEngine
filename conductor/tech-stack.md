@@ -23,7 +23,7 @@
 ## 4. 资源加载 (可扩展模块化)
 - **图像加载**：stb_image (轻量化、默认支持)。
 - **模型加载**：
-    - **核心默认**：assimp (支持多种 3D 格式)。
+    - **核心默认**：assimp (已集成，支持多种 3D 格式，包括 OBJ, FBX, GLTF)。
     - **扩展预留**：接口设计支持后续集成 tinygltf (glTF 原生支持) 和 FBX SDK。
 - **着色器编译**：glslang (用于将 GLSL 编译为 SPIR-V)，spirv-cross (用于字节码分析)。
 - **几何体生成**：内置 FGeometryUtils，支持程序化生成球体等基础形状。

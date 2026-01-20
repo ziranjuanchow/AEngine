@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Assimp 模型加载**
+- [x] **Track: Assimp 模型加载**
   *Link: [./tracks/assimp_loading_20260120/](./tracks/assimp_loading_20260120/)*

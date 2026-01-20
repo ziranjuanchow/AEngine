@@ -29,6 +29,10 @@ add_executable(AEngine
     src/Core/Engine.cpp
     src/Core/PluginManager.cpp
     src/Core/WindowSubsystem.cpp
+    src/Core/SceneNode.cpp
+    src/RHI/OpenGL/OpenGLResources.cpp
+    src/RHI/OpenGL/OpenGLCommandBuffer.cpp
+    src/RHI/OpenGL/OpenGLDevice.cpp
 )
 
 target_link_libraries(AEngine PRIVATE 
@@ -50,10 +54,12 @@ add_executable(AEngineTests
     tests/EngineTests.cpp
     tests/PluginTests.cpp
     tests/WindowTests.cpp
+    tests/SceneTests.cpp
     src/Core/Log.cpp
     src/Core/Engine.cpp
     src/Core/PluginManager.cpp
     src/Core/WindowSubsystem.cpp
+    src/Core/SceneNode.cpp
 )
 target_link_libraries(AEngineTests PRIVATE 
     Catch2::Catch2WithMain
@@ -63,11 +69,13 @@ target_link_libraries(AEngineTests PRIVATE
     glad::glad
     imgui::imgui
     OpenGL::GL
+    glm::glm
 )
 target_include_directories(AEngineTests PRIVATE src)
 add_test(NAME LogTests COMMAND AEngineTests)
 add_test(NAME EngineTests COMMAND AEngineTests)
 add_test(NAME PluginTests COMMAND AEngineTests)
+add_test(NAME SceneTests COMMAND AEngineTests)
 
 # Plugins
 add_library(StatsPanel SHARED plugins/StatsPanel/StatsPanel.cpp)

@@ -1,0 +1,41 @@
+#pragma once
+
+#include <memory>
+#include <vector>
+#include <span>
+#include "RHIResources.h"
+
+namespace AEngine {
+
+    class IRHICommandBuffer {
+    public:
+        virtual ~IRHICommandBuffer() = default;
+
+        virtual void Begin() = 0;
+        virtual void End() = 0;
+
+        virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
+        virtual void Clear(float r, float g, float b, float a) = 0;
+        
+        virtual void SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) = 0;
+        virtual void SetVertexBuffer(std::shared_ptr<IRHIBuffer> buffer) = 0;
+        virtual void SetIndexBuffer(std::shared_ptr<IRHIBuffer> buffer) = 0;
+
+        virtual void Draw(uint32_t vertexCount, uint32_t instanceCount = 1) = 0;
+        virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1) = 0;
+    };
+
+    class IRHIDevice {
+    public:
+        virtual ~IRHIDevice() = default;
+
+        virtual std::shared_ptr<IRHIBuffer> CreateBuffer(ERHIBufferType type, uint32_t size, ERHIBufferUsage usage, const void* data = nullptr) = 0;
+        virtual std::shared_ptr<IRHITexture> CreateTexture(uint32_t width, uint32_t height, ERHIPixelFormat format, const void* data = nullptr) = 0;
+        
+        virtual std::shared_ptr<IRHICommandBuffer> CreateCommandBuffer() = 0;
+        
+        virtual void SubmitCommandBuffer(std::shared_ptr<IRHICommandBuffer> cmdBuffer) = 0;
+        virtual void Present() = 0;
+    };
+
+}

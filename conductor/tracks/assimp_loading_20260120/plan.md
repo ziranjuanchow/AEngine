@@ -1,7 +1,12 @@
 # Track 实施计划 - Assimp 模型加载
 
-## Phase 1: Assimp 集成与基础解析
+## Phase 1: Assimp 集成与基础解析 [checkpoint: 9f8d956]
+
+
+
 - [x] Task: 扩展顶点结构与 RHI 配置
+
+
     - [x] [TDD] 验证新顶点结构的对齐 (tests/VertexTests.cpp)
     - [x] 在 `GeometryUtils.h` 中扩展 `FVertex` 以支持切线、副切线和顶点颜色 (移至 RHIDefinitions.h)
     - [x] 更新 `FOpenGLCommandBuffer::SetVertexBuffer` 以支持新的顶点属性布局 (src/RHI/OpenGL/OpenGLCommandBuffer.cpp)

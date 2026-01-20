@@ -17,6 +17,11 @@ uniform vec3 lightPosition;
 uniform vec3 lightColor;
 uniform vec3 camPos;
 
+// IBL parameters
+uniform samplerCube irradianceMap;
+uniform samplerCube prefilterMap;
+uniform sampler2D brdfLUT;
+
 const float PI = 3.14159265359;
 
 // --- BRDF Functions ---
@@ -57,6 +62,10 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0) {
     return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
+vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness) {
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
+}
+
 void main()
 {		
     vec3 N = normalize(Normal);
@@ -94,8 +103,24 @@ void main()
 
     Lo += (kD * albedo / PI + specular) * radiance * NdotL;
 
-    // Ambient part (will be replaced by IBL in Phase 3)
-    vec3 ambient = vec3(0.03) * albedo * ao;
+    // --- IBL Part ---
+    vec3 F = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);
+    
+    vec3 kS = F;
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse      = irradiance * albedo;
+    
+    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+    const float MAX_REFLECTION_LOD = 4.0;
+    vec3 R = reflect(-V, N);   
+    vec3 prefilteredColor = textureLod(prefilterMap, R,  roughness * MAX_REFLECTION_LOD).rgb;    
+    vec2 brdf  = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    vec3 specularIBL = prefilteredColor * (F * brdf.x + brdf.y);
+
+    vec3 ambient = (kD * diffuse + specularIBL) * ao;
     
     vec3 color = ambient + Lo;
 

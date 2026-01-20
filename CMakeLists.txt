@@ -39,6 +39,8 @@ add_executable(AEngine
     src/RHI/OpenGL/OpenGLDevice.cpp
     src/RHI/StandardPBRMaterial.cpp
     src/RHI/ForwardLitPass.cpp
+    src/Core/AssetLoader.cpp
+    src/RHI/IBLPreprocessor.cpp
 )
 
 target_link_libraries(AEngine PRIVATE 

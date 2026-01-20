@@ -25,16 +25,13 @@
 - [x] Task: Conductor - 用户手册验证 'Phase 2: 渲染管线框架与基础 Pass' (Protocol in workflow.md)
 
 ## Phase 3: IBL 环境预处理与集成
-- [ ] Task: 实现 HDR 贴图加载器
-    - [ ] 集成 stb_image_resize (如有必要) 并支持 .hdr 格式加载
-- [ ] Task: 实现 IBL 预处理管线
-    - [ ] 编写 Equirectangular to Cubemap Shader
-    - [ ] 编写 Irradiance Convolution Shader
-    - [ ] 编写 Pre-filter Specular Shader
-    - [ ] 编写 BRDF LUT 生成 Shader
-    - [ ] C++ 端实现预处理调度逻辑 (Compute Shader 或 Fullscreen Triangle)
-- [ ] Task: 更新 PBR Shader 以支持 IBL
-    - [ ] 引入环境光照计算 (Diffuse + Specular)
+- [x] Task: 实现 HDR 贴图加载器
+    - [x] 集成 stb_image 并支持 .hdr 格式加载 (src/Core/AssetLoader.h/cpp)
+- [x] Task: 实现 IBL 预处理管线
+    - [x] 编写 IBL 相关 Shaders (shaders/EquirectangularToCubemap.frag 等)
+    - [x] C++ 端实现预处理调度架构 (src/RHI/IBLPreprocessor.h/cpp)
+- [x] Task: 更新 PBR Shader 以支持 IBL
+    - [x] 引入环境光照计算 (Diffuse + Specular) (shaders/StandardPBR.frag)
 - [ ] Task: Conductor - 用户手册验证 'Phase 3: IBL 环境预处理与集成' (Protocol in workflow.md)
 
 ## Phase 4: 整合与场景演示

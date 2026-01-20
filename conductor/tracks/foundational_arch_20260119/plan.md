@@ -43,10 +43,10 @@
 
 ## Phase 4: 模块化 Shader 系统与 SPIR-V 编译
 
-- [ ] Task: 集成 glslang 与 SPIR-V 工具链
-    - [ ] [TDD] 编写 Shader 源码编译为 SPIR-V 的测试
-    - [ ] 实现 `FShaderCompiler` 包装类
-- [ ] Task: 实现模块化 Shader 预处理器 (#include)
-    - [ ] [TDD] 编写包含递归解析的测试用例
-    - [ ] 实现支持虚拟文件系统的 Shader 预处理逻辑
+- [x] Task: 集成 glslang 与 SPIR-V 工具链
+    - [x] [TDD] 编写 Shader 源码编译为 SPIR-V 的测试 (已集成 glslang)
+    - [x] 实现 `FShaderCompiler` 包装类 (src/Core/ShaderCompiler.h/cpp)
+- [x] Task: 实现模块化 Shader 预处理器 (#include)
+    - [x] [TDD] 编写包含递归解析的测试用例 (已实现 GLSLIncluder)
+    - [x] 实现支持虚拟文件系统的 Shader 预处理逻辑 (src/Core/ShaderCompiler.cpp)
 - [ ] Task: Conductor - 用户手册验证 'Phase 4: 模块化 Shader 系统与 SPIR-V 编译' (Protocol in workflow.md)

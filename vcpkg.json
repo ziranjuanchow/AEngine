@@ -20,6 +20,8 @@
       ]
     },
     "catch2",
-    "tl-expected"
+    "tl-expected",
+    "glslang",
+    "spirv-cross"
   ]
 }

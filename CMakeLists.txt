@@ -22,6 +22,9 @@ find_package(imgui CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 find_package(tl-expected CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
+find_package(glslang CONFIG REQUIRED)
+find_package(spirv_cross_core CONFIG REQUIRED)
+find_package(spirv_cross_glsl CONFIG REQUIRED)
 
 add_executable(AEngine 
     main.cpp
@@ -30,6 +33,7 @@ add_executable(AEngine
     src/Core/PluginManager.cpp
     src/Core/WindowSubsystem.cpp
     src/Core/SceneNode.cpp
+    src/Core/ShaderCompiler.cpp
     src/RHI/OpenGL/OpenGLResources.cpp
     src/RHI/OpenGL/OpenGLCommandBuffer.cpp
     src/RHI/OpenGL/OpenGLDevice.cpp
@@ -45,6 +49,10 @@ target_link_libraries(AEngine PRIVATE
     imgui::imgui
     tl::expected
     OpenGL::GL
+    glslang::glslang
+    glslang::SPIRV
+    spirv-cross-core
+    spirv-cross-glsl
 )
 target_include_directories(AEngine PRIVATE src)
 
@@ -60,6 +68,7 @@ add_executable(AEngineTests
     src/Core/PluginManager.cpp
     src/Core/WindowSubsystem.cpp
     src/Core/SceneNode.cpp
+    src/Core/ShaderCompiler.cpp
 )
 target_link_libraries(AEngineTests PRIVATE 
     Catch2::Catch2WithMain
@@ -70,6 +79,8 @@ target_link_libraries(AEngineTests PRIVATE
     imgui::imgui
     OpenGL::GL
     glm::glm
+    glslang::glslang
+    glslang::SPIRV
 )
 target_include_directories(AEngineTests PRIVATE src)
 add_test(NAME LogTests COMMAND AEngineTests)

@@ -45,6 +45,35 @@ namespace AEngine {
         AE_CORE_INFO("  Renderer: {0}", (const char*)glGetString(GL_RENDERER));
         AE_CORE_INFO("  Version: {0}", (const char*)glGetString(GL_VERSION));
 
+        // Check SPIR-V Support
+        GLint numExtensions;
+        glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+        bool hasSpirv = false;
+        for (int i = 0; i < numExtensions; i++) {
+            const char* ext = (const char*)glGetStringi(GL_EXTENSIONS, i);
+            if (std::string(ext) == "GL_ARB_gl_spirv") {
+                hasSpirv = true;
+                break;
+            }
+        }
+        
+        if (hasSpirv) {
+            AE_CORE_INFO("GL_ARB_gl_spirv is SUPPORTED.");
+        } else {
+            AE_CORE_WARN("GL_ARB_gl_spirv is NOT supported by the driver.");
+        }
+
+        if (!glSpecializeShader) {
+            AE_CORE_WARN("glSpecializeShader is nullptr. Attempting manual load...");
+            glSpecializeShader = (PFNGLSPECIALIZESHADERPROC)glfwGetProcAddress("glSpecializeShader");
+            if (glSpecializeShader) AE_CORE_INFO("Manual load of glSpecializeShader SUCCESS.");
+            else AE_CORE_ERROR("Manual load of glSpecializeShader FAILED.");
+        }
+        
+        if (!glShaderBinary) {
+             glShaderBinary = (PFNGLSHADERBINARYPROC)glfwGetProcAddress("glShaderBinary");
+        }
+
         // Initialize ImGui
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();

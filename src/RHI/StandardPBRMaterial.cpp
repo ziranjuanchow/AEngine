@@ -3,7 +3,6 @@
 #include "../Core/Log.h"
 #include <fstream>
 #include <sstream>
-
 #include <glm/gtc/type_ptr.hpp>
 
 namespace AEngine {
@@ -26,31 +25,46 @@ namespace AEngine {
         std::string vertSrc = readFile(vertPath);
         std::string fragSrc = readFile(fragPath);
 
+        // 1. Compile GLSL to SPIR-V via glslang
         auto& compiler = FShaderCompiler::Get();
-        
         auto vertSpv = compiler.CompileGLSL(EShaderStage::Vertex, vertSrc);
         auto fragSpv = compiler.CompileGLSL(EShaderStage::Fragment, fragSrc);
 
         if (!vertSpv || !fragSpv) {
-            AE_CORE_ERROR("Failed to compile PBR shaders!");
+            AE_CORE_ERROR("Failed to compile PBR shaders to SPIR-V!");
             return;
         }
 
-        // For now, we manually create OpenGL program from SPIR-V
-        // In a real RHI, this would be handled by IRHIDevice::CreatePipelineState
-        
+        // 2. Load SPIR-V into OpenGL
+        // Note: Functions were manually loaded in WindowSubsystem if glad missed them
+        if (!glShaderBinary || !glSpecializeShader) {
+            AE_CORE_CRITICAL("OpenGL SPIR-V functions still not available!");
+            return;
+        }
+
         GLuint vertShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderBinary(1, &vertShader, GL_SHADER_BINARY_FORMAT_SPIR_V, vertSpv->data(), vertSpv->size() * sizeof(uint32_t));
+        glShaderBinary(1, &vertShader, GL_SHADER_BINARY_FORMAT_SPIR_V, vertSpv->data(), (GLsizei)(vertSpv->size() * sizeof(uint32_t)));
         glSpecializeShader(vertShader, "main", 0, nullptr, nullptr);
 
         GLuint fragShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderBinary(1, &fragShader, GL_SHADER_BINARY_FORMAT_SPIR_V, fragSpv->data(), fragSpv->size() * sizeof(uint32_t));
+        glShaderBinary(1, &fragShader, GL_SHADER_BINARY_FORMAT_SPIR_V, fragSpv->data(), (GLsizei)(fragSpv->size() * sizeof(uint32_t)));
         glSpecializeShader(fragShader, "main", 0, nullptr, nullptr);
 
+        // 3. Link Program
         m_program = glCreateProgram();
         glAttachShader(m_program, vertShader);
         glAttachShader(m_program, fragShader);
         glLinkProgram(m_program);
+
+        GLint success;
+        glGetProgramiv(m_program, GL_LINK_STATUS, &success);
+        if (!success) {
+            char infoLog[512];
+            glGetProgramInfoLog(m_program, 512, nullptr, infoLog);
+            AE_CORE_ERROR("Program Linking Failed (SPIR-V): {0}", infoLog);
+        } else {
+            AE_CORE_INFO("PBR Program Linked Successfully using SPIR-V. ID: {0}", m_program);
+        }
 
         glDeleteShader(vertShader);
         glDeleteShader(fragShader);
@@ -60,18 +74,22 @@ namespace AEngine {
         if (m_program) {
             glUseProgram(m_program);
             
-            glUniform3fv(glGetUniformLocation(m_program, "albedo"), 1, &m_albedo[0]);
-            glUniform1f(glGetUniformLocation(m_program, "metallic"), m_metallic);
-            glUniform1f(glGetUniformLocation(m_program, "roughness"), m_roughness);
-            glUniform1f(glGetUniformLocation(m_program, "ao"), m_ao);
+            glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(m_model));
+            glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(m_view));
+            glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(m_projection));
 
-            glUniform3fv(glGetUniformLocation(m_program, "lightPosition"), 1, glm::value_ptr(m_lightPosition));
-            glUniform3fv(glGetUniformLocation(m_program, "lightColor"), 1, glm::value_ptr(m_lightColor));
-            glUniform3fv(glGetUniformLocation(m_program, "camPos"), 1, glm::value_ptr(m_camPos));
+            glUniform3fv(3, 1, &m_albedo[0]);
+            glUniform1f(4, m_metallic);
+            glUniform1f(5, m_roughness);
+            glUniform1f(6, m_ao);
 
-            glUniformMatrix4fv(glGetUniformLocation(m_program, "model"), 1, GL_FALSE, glm::value_ptr(m_model));
-            glUniformMatrix4fv(glGetUniformLocation(m_program, "view"), 1, GL_FALSE, glm::value_ptr(m_view));
-            glUniformMatrix4fv(glGetUniformLocation(m_program, "projection"), 1, GL_FALSE, glm::value_ptr(m_projection));
+            glUniform3fv(7, 1, glm::value_ptr(m_lightPosition));
+            glUniform3fv(8, 1, glm::value_ptr(m_lightColor));
+            glUniform3fv(9, 1, glm::value_ptr(m_camPos));
+
+            glUniform1i(10, 0); 
+            glUniform1i(11, 1); 
+            glUniform1i(12, 2); 
         }
     }
 

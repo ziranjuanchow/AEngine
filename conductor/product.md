@@ -17,7 +17,7 @@ AEngine 是一款专为游戏引擎开发者设计的高性能、高度模块化
 - **多 API 渲染抽象层 (RHI)**：提供极简 RHI 封装，支持 OpenGL、Vulkan 和 DirectX 的无缝切换，同时暴露底层 API 能力以供高级调优。
 
 ## 渲染特性（模块化）
-- **可自定义渲染模型**：内置 PBR 插件，同时开放接口支持完全自定义的非 PBR 渲染管线（类似于 **Godot** 的可编程管线或 **Unity** 的 SRP）。
+- **可自定义渲染模型**：内置基于 Cook-Torrance BRDF 的 PBR 材质系统，支持实时参数（Metallic, Roughness）调节。同时开放接口支持完全自定义的非 PBR 渲染管线。
 - **模块化光线追踪**：光线追踪功能作为独立插件提供，支持 DXR/Vulkan Ray Tracing 的灵活配置。
 - **灵活的全局光照 (GI)**：DDGI、SSGI 等算法均以插件形式存在，支持运行时切换。
 

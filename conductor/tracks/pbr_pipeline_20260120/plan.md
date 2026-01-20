@@ -1,14 +1,14 @@
 # Track 实施计划 - PBR 材质基础与渲染管线原型
 
-## Phase 1: 材质接口与 PBR Shader 基础
+## Phase 1: 材质接口与 PBR Shader 基础 [checkpoint: e59f638]
 - [x] Task: 定义材质系统接口
     - [x] [TDD] 编写材质绑定接口测试 (tests/MaterialTests.cpp)
     - [x] 定义 `IMaterial` 和 `IMaterialInstance` (src/RHI/IMaterial.h, src/RHI/MaterialInstance.h)
 - [x] Task: 实现 FStandardPBRMaterial (Uber Shader)
     - [x] 编写 PBR 顶点着色器 (shaders/StandardPBR.vert)
     - [x] 编写 PBR 片元着色器 (shaders/StandardPBR.frag)
-    - [x] 实现 C++ 端的参数绑定逻辑 (src/RHI/StandardPBRMaterial.h/cpp)
-- [ ] Task: Conductor - 用户手册验证 'Phase 1: 材质接口与 PBR Shader 基础' (Protocol in workflow.md)
+    - 实现 C++ 端的参数绑定逻辑
+- [x] Task: Conductor - 用户手册验证 'Phase 1: 材质接口与 PBR Shader 基础' (Protocol in workflow.md)
 
 ## Phase 2: 渲染管线框架与基础 Pass
 - [ ] Task: 定义 Render Graph 基础结构

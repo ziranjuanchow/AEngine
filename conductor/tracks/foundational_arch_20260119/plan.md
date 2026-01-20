@@ -28,7 +28,7 @@
     - 编写一个简单的性能监控面板插件
 - [x] Task: Conductor - 用户手册验证 'Phase 2: 插件系统原型与 ImGui 集成' (Protocol in workflow.md)
 
-## Phase 3: RHI 抽象层 (OpenGL) 与场景树
+## Phase 3: RHI 抽象层 (OpenGL) 与场景树 [checkpoint: 00aab69]
 
 - [x] Task: 定义 RHI 基础接口 (IRHIDevice, IRHICommandBuffer)
     - [x] [TDD] 编写接口 Mock 测试 (接口设计已完成)
@@ -38,8 +38,8 @@
     - [x] 实现 OpenGL 下的缓冲区、管线状态与纹理创建 (src/RHI/OpenGL/*)
 - [x] Task: 实现基础场景树 (SceneTree) 与 TRS 变换
     - [x] [TDD] 编写父子节点矩阵计算测试 (tests/SceneTests.cpp)
-    - [x] 实现 `FSceneNode` 与坐标空间转换逻辑 (src/Core/SceneNode.h/cpp)
-- [ ] Task: Conductor - 用户手册验证 'Phase 3: RHI 抽象层 (OpenGL) 与场景树' (Protocol in workflow.md)
+    - 实现 `FSceneNode` 与坐标空间转换逻辑
+- [x] Task: Conductor - 用户手册验证 'Phase 3: RHI 抽象层 (OpenGL) 与场景树' (Protocol in workflow.md)
 
 ## Phase 4: 模块化 Shader 系统与 SPIR-V 编译
 

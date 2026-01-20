@@ -41,6 +41,7 @@ add_executable(AEngine
     src/RHI/ForwardLitPass.cpp
     src/Core/AssetLoader.cpp
     src/RHI/IBLPreprocessor.cpp
+    src/Core/GeometryUtils.cpp
 )
 
 target_link_libraries(AEngine PRIVATE 
@@ -68,6 +69,7 @@ add_executable(AEngineTests
     tests/WindowTests.cpp
     tests/SceneTests.cpp
     tests/MaterialTests.cpp
+    tests/VertexTests.cpp
     src/Core/Log.cpp
     src/Core/Engine.cpp
     src/Core/PluginManager.cpp

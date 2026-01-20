@@ -195,6 +195,11 @@ namespace AEngine {
 
         EShLanguage lang = GetLanguage(stage);
         glslang::TShader shader(lang);
+        
+        // Explicitly target OpenGL SPIR-V
+        shader.setEnvInput(glslang::EShSourceGlsl, lang, glslang::EShClientOpenGL, 450);
+        shader.setEnvClient(glslang::EShClientOpenGL, glslang::EShTargetOpenGL_450);
+        shader.setEnvTarget(glslang::EShTargetSpv, glslang::EShTargetSpv_1_0);
 
         const char* shaderStrings = source.c_str();
         shader.setStrings(&shaderStrings, 1);
@@ -202,7 +207,8 @@ namespace AEngine {
         // Set default resources
         const TBuiltInResource* resources = &DefaultTBuiltInResource;
 
-        EShMessages messages = (EShMessages)(EShMsgDefault | EShMsgSpvRules | EShMsgVulkanRules);
+        // Use SpvRules but NOT VulkanRules to allow loose uniforms for OpenGL SPIR-V
+        EShMessages messages = (EShMessages)(EShMsgDefault | EShMsgSpvRules);
 
         FGLSLIncluder includer;
 

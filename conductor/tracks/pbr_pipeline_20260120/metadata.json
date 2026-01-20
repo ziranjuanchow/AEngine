@@ -1,8 +1,0 @@
-{
-  "track_id": "pbr_pipeline_20260120",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-20T10:45:00Z",
-  "updated_at": "2026-01-20T10:45:00Z",
-  "description": "实现 PBR 材质基础与渲染管线原型，包括材质接口、Uber Shader、Render Graph 基础、IBL 预处理及直接光照。"
-}

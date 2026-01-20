@@ -1,4 +1,4 @@
-# Track pbr_pipeline_20260120 Context
+# Track assimp_loading_20260120 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

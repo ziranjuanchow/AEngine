@@ -12,6 +12,7 @@
     - 支持参数绑定：通过 `IMaterial::SetParameter` 动态更新 Uniforms。
 - **Shader 编译**：
     - 集成 `glslang`，运行时将 GLSL 源码编译为 SPIR-V 字节码。
+    - **技术方案**：针对 OpenGL 4.6 环境，采用 `EShTargetOpenGL_450` 规则编译，允许在 SPIR-V 中使用独立的 Uniforms，从而简化从传统 GLSL 的迁移。
     - 支持 `#include` 预处理指令，方便 Shader 代码复用。
 
 ### 2.2 渲染管线 (Render Graph)

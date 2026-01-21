@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: 性能优化与代码清理**
+- [x] **Track: 性能优化与代码清理**
   *Link: [./tracks/refactor_perf_20260121/](./tracks/refactor_perf_20260121/)*

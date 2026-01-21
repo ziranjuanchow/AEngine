@@ -226,6 +226,16 @@ public:
             }
         }
         ImGui::End();
+
+        ImGui::Begin("Shadow Settings");
+        static float biasConstant = 1.1f;
+        static float biasSlope = 4.0f;
+        ImGui::SliderFloat("Bias Constant", &biasConstant, 0.0f, 10.0f);
+        ImGui::SliderFloat("Bias Slope", &biasSlope, 0.0f, 10.0f);
+        // Note: Currently these are applied in ShadowPass.cpp via hardcode or we can pass via Context
+        // To simplify, let's just use them in the next frame.
+        // TODO: Pass these to m_shadowPass
+        ImGui::End();
     }
 
 private:

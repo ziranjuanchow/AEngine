@@ -44,11 +44,18 @@ float ShadowCalculation(vec4 fragPosLightSpace) {
     // check if outside light frustum
     if(projCoords.z > 1.0) return 0.0;
 
-    // Direct hardware PCF (if GL_COMPARE_REF_TO_TEXTURE is enabled)
-    // sampler2DShadow texture() returns float (0..1)
-    float shadow = 1.0 - texture(shadowMap, projCoords);
+    // 3x3 PCF
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    for(int x = -1; x <= 1; ++x) {
+        for(int y = -1; y <= 1; ++y) {
+            float pcfDepth = texture(shadowMap, vec3(projCoords.xy + vec2(x, y) * texelSize, projCoords.z));
+            shadow += pcfDepth; // texture() returns 1.0 if not in shadow, 0.0 if in shadow
+        }    
+    }
+    shadow /= 9.0;
     
-    return shadow;
+    return 1.0 - shadow;
 }
 
 // --- BRDF Functions ---

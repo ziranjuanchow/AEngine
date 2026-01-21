@@ -1,6 +1,6 @@
 # Track 实施计划 - 场景大纲与层级管理
 
-## Phase 1: 场景基础设施增强
+## Phase 1: 场景基础设施增强 [checkpoint: 540f70e]
 
 - [x] Task: 扩展 FSceneNode 功能
     - [x] [TDD] 编写可见性切换与名称修改测试 (tests/SceneTests.cpp)
@@ -8,7 +8,7 @@
 - [x] Task: 实现递归渲染数据收集
     - [x] [TDD] 验证递归遍历能否正确收集所有子节点的 FRenderable (逻辑简单，直接集成验证)
     - [x] 在 `SandboxApp` 中实现 `CollectRenderables(FSceneNode* node, ...)` 逻辑，替换目前的扁平列表
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: 场景基础设施增强' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: 场景基础设施增强' (Protocol in workflow.md)
 
 ## Phase 2: 场景大纲面板 (Scene Outliner)
 

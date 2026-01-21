@@ -1,4 +1,4 @@
-# Track shadow_mapping_20260121 Context
+# Track scene_editor_20260121 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

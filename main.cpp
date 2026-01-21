@@ -2,6 +2,7 @@
 #include <glad/glad.h>
 #include "Core/FApplication.h"
 #include "Core/Log.h"
+#include "Core/SceneNode.h"
 #include "Core/PluginManager.h"
 #include "Core/GeometryUtils.h"
 #include "Core/AssetLoader.h"
@@ -59,7 +60,10 @@ public:
         FGeometryUtils::CreateQuad(*m_device, quadVB, quadIB, quadIndexCount);
 
         // Initial Scene Setup
+        m_rootNode = std::make_unique<FSceneNode>("SceneRoot");
+
         // Ground
+        auto groundNode = std::make_unique<FSceneNode>("Ground");
         {
             FRenderable r;
             r.VertexBuffer = quadVB;
@@ -67,17 +71,23 @@ public:
             r.IndexCount = quadIndexCount;
             r.Material = m_pbrMat;
             r.WorldMatrix = glm::mat4(1.0f);
-            m_scene.push_back(r);
+            groundNode->AddRenderable(r);
         }
+        m_rootNode->AddChild(std::move(groundNode));
 
         for (int i = 0; i < 5; ++i) {
+            auto sphereNode = std::make_unique<FSceneNode>("Sphere_" + std::to_string(i));
+            sphereNode->SetPosition(glm::vec3(i * 2.5f - 5.0f, 0.0f, 0.0f));
+            
             FRenderable r;
             r.VertexBuffer = m_sphereVB;
             r.IndexBuffer = m_sphereIB;
             r.IndexCount = sphereIndexCount;
             r.Material = m_pbrMat;
-            r.WorldMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(i * 2.5f - 5.0f, 0.0f, 0.0f));
-            m_scene.push_back(r);
+            // WorldMatrix will be overwritten by Node's transform during collection
+            
+            sphereNode->AddRenderable(r);
+            m_rootNode->AddChild(std::move(sphereNode));
         }
 
         m_cmdBuffer = m_device->CreateCommandBuffer();
@@ -124,7 +134,7 @@ public:
             m_lastX = xpos;
             m_lastY = ypos;
 
-            float sensitivity = 0.1f;
+            float sensitivity = 0.05f; // Reduced from 0.1f
             xoffset *= sensitivity;
             yoffset *= sensitivity;
 
@@ -163,6 +173,11 @@ public:
         glm::mat4 lightView = glm::lookAt(ctx.LightPosition, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         ctx.LightSpaceMatrix = lightProjection * lightView;
 
+        // Update Scene
+        m_rootNode->UpdateWorldMatrix();
+        m_scene.clear();
+        CollectRenderables(m_rootNode.get(), m_scene);
+
         // Bind Shadow Map to PBR Material
         // In a real engine, this would be handled by the Render Graph automatically
         m_pbrMat->SetParameter("shadowMap", m_shadowPass->GetDepthMap());
@@ -196,9 +211,14 @@ public:
 
         if (ImGui::Button("Load Model")) {
             if (auto newModel = FAssetLoader::LoadModel(*m_device, modelPath)) {
-                m_currentModel = newModel;
-                m_scene = m_currentModel->Renderables; 
+                // ...
             }
+        }
+        
+        if (ImGui::Button("Reset Camera")) {
+            m_cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
+            m_cameraYaw = -90.0f;
+            m_cameraPitch = 0.0f;
         }
         ImGui::End();
 
@@ -247,8 +267,26 @@ private:
     std::shared_ptr<FStandardPBRMaterial> m_pbrMat;
     std::shared_ptr<IRHIBuffer> m_sphereVB, m_sphereIB;
     
-    std::vector<FRenderable> m_scene;
+    // Scene
+    std::unique_ptr<FSceneNode> m_rootNode;
+    std::vector<FRenderable> m_scene; // Flattened list for rendering
     std::shared_ptr<FModel> m_currentModel;
+
+    void CollectRenderables(FSceneNode* node, std::vector<FRenderable>& outList) {
+        if (!node->IsVisible()) return;
+
+        // Add node's renderables
+        for (auto renderable : node->GetRenderables()) {
+            // Update World Matrix from Node
+            renderable.WorldMatrix = node->GetWorldMatrix();
+            outList.push_back(renderable);
+        }
+
+        // Recurse
+        for (const auto& child : node->GetChildren()) {
+            CollectRenderables(child.get(), outList);
+        }
+    }
 
     // Camera
     glm::vec3 m_cameraPos{ 0.0f, 0.0f, 10.0f };

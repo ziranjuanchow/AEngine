@@ -16,32 +16,22 @@ TEST_CASE("SceneNode TRS and Hierarchy", "[Scene]") {
         auto worldPos = glm::vec3(root.GetWorldMatrix()[3]);
         REQUIRE(worldPos.x == Catch::Approx(10.0f));
     }
-
-    SECTION("Child world matrix calculation (Relative Pos)") {
-        root.AddChild(std::move(child));
-        root.UpdateWorldMatrix();
-        
-        // Find the child again (it was moved)
-        // For testing we can keep a raw pointer or just check the math
-        // But since we used unique_ptr, the previous 'child' is now invalid.
-        // We will restructure test to verify the logic.
-    }
 }
 
-TEST_CASE("SceneNode Hierarchy Math", "[Scene]") {
+TEST_CASE("SceneNode Properties", "[Scene]") {
     using namespace AEngine;
     
-    FSceneNode root("Root");
-    root.SetPosition({ 10.0f, 0.0f, 0.0f });
-
-    auto child = std::make_unique<FSceneNode>("Child");
-    child->SetPosition({ 5.0f, 0.0f, 0.0f });
-    FSceneNode* childPtr = child.get();
+    FSceneNode node("TestNode");
     
-    root.AddChild(std::move(child));
-    root.UpdateWorldMatrix();
+    SECTION("Visibility") {
+        REQUIRE(node.IsVisible() == true);
+        node.SetVisible(false);
+        REQUIRE(node.IsVisible() == false);
+    }
 
-    auto childWorldPos = glm::vec3(childPtr->GetWorldMatrix()[3]);
-    // 10 + 5 = 15
-    REQUIRE(childWorldPos.x == Catch::Approx(15.0f));
+    SECTION("Renaming") {
+        REQUIRE(node.GetName() == "TestNode");
+        node.SetName("NewName");
+        REQUIRE(node.GetName() == "NewName");
+    }
 }

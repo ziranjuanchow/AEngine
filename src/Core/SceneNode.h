@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include "../RHI/RenderGraph.h"
 
 namespace AEngine {
 
@@ -12,6 +13,11 @@ namespace AEngine {
     public:
         FSceneNode(const std::string& name = "Node");
         ~FSceneNode() = default;
+
+        // Render Data
+        void AddRenderable(const FRenderable& renderable) { m_renderables.push_back(renderable); }
+        const std::vector<FRenderable>& GetRenderables() const { return m_renderables; }
+        std::vector<FRenderable>& GetRenderablesMutable() { return m_renderables; } // For editing
 
         // TRS
         void SetPosition(const glm::vec3& pos) { m_localPosition = pos; m_dirty = true; }
@@ -32,9 +38,17 @@ namespace AEngine {
         const glm::mat4& GetWorldMatrix() const { return m_worldMatrix; }
 
         const std::string& GetName() const { return m_name; }
+        void SetName(const std::string& name) { m_name = name; }
+
+        bool IsVisible() const { return m_isVisible; }
+        void SetVisible(bool visible) { m_isVisible = visible; }
+
+        const std::vector<std::unique_ptr<FSceneNode>>& GetChildren() const { return m_children; }
 
     private:
         std::string m_name;
+        bool m_isVisible = true;
+        std::vector<FRenderable> m_renderables;
         
         glm::vec3 m_localPosition{ 0.0f };
         glm::quat m_localRotation{ 1.0f, 0.0f, 0.0f, 0.0f };

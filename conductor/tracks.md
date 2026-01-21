@@ -4,5 +4,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: 阴影映射**
-  *Link: [./tracks/shadow_mapping_20260121/](./tracks/shadow_mapping_20260121/)*
+- [~] **Track: 场景大纲与层级管理**
+  *Link: [./tracks/scene_editor_20260121/](./tracks/scene_editor_20260121/)*

@@ -16,6 +16,8 @@ Detailed documentation for implemented features:
   - Assimp Integration, Texture Loading, Automated Material Mapping.
 - [04 - Shadow Mapping](./features/04_Shadow_Mapping.md)
   - Directional Shadows, PCF Soft Shadows, Depth Bias.
+- [05 - Scene Editor](./features/05_Scene_Editor.md)
+  - Hierarchy, Inspector, Transform Editing.
 
 ## Other Resources
 - [Build Instructions](../README.md) (See root README)

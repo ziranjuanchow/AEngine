@@ -11,7 +11,7 @@
     - [x] 为 `IRHIDevice`, `IRHICommandBuffer` 添加注释
 - [x] Task: Conductor - User Manual Verification 'Phase 1: 架构重构与 API 文档化' (Protocol in workflow.md)
 
-## Phase 2: 着色器与 RHI 性能增强
+## Phase 2: 着色器与 RHI 性能增强 [checkpoint: 89a084c]
 
 - [x] Task: 实现 Shader 编译内存缓存
     - [x] [TDD] 编写 Shader 缓存命中测试 (逻辑已在 CompileGLSL 中实现)
@@ -19,7 +19,7 @@
 - [x] Task: 实现 RHI 状态追踪 (OpenGL 后端)
     - [x] [TDD] 验证状态重复设置时的 API 旁路行为 (逻辑已在 CommandBuffer 中实现)
     - [x] 在 `FOpenGLCommandBuffer` 中添加当前绑定 Program 和 VAO 的状态缓存
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: 着色器与 RHI 性能增强' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: 着色器与 RHI 性能增强' (Protocol in workflow.md)
 
 ## Phase 3: 逻辑优化与最终验证
 

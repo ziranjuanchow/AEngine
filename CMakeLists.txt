@@ -74,6 +74,7 @@ add_executable(AEngineTests
     tests/SceneTests.cpp
     tests/MaterialTests.cpp
     tests/VertexTests.cpp
+    tests/ShadowTests.cpp
     src/Core/Log.cpp
     src/Core/Engine.cpp
     src/Core/PluginManager.cpp

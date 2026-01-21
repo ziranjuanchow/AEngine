@@ -61,4 +61,30 @@ namespace AEngine {
         outIB = device.CreateBuffer(ERHIBufferType::Index, (uint32_t)(indices.size() * sizeof(uint32_t)), ERHIBufferUsage::Static, indices.data());
     }
 
+    void FGeometryUtils::CreateQuad(IRHIDevice& device, std::shared_ptr<IRHIBuffer>& outVB, std::shared_ptr<IRHIBuffer>& outIB, uint32_t& outIndexCount) {
+        std::vector<FVertex> vertices;
+        
+        auto addVertex = [&](glm::vec3 pos, glm::vec3 norm, glm::vec2 uv) {
+            FVertex v;
+            v.Position = pos;
+            v.Normal = norm;
+            v.TexCoords = uv;
+            v.Tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+            v.Bitangent = glm::vec3(0.0f, 0.0f, 1.0f);
+            v.Color = glm::vec4(1.0f);
+            vertices.push_back(v);
+        };
+
+        addVertex({ -10.0f, -2.0f,  10.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f });
+        addVertex({  10.0f, -2.0f,  10.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 0.0f });
+        addVertex({  10.0f, -2.0f, -10.0f }, { 0.0f, 1.0f, 0.0f }, { 1.0f, 1.0f });
+        addVertex({ -10.0f, -2.0f, -10.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 1.0f });
+
+        std::vector<uint32_t> indices = { 0, 1, 2, 2, 3, 0 };
+
+        outIndexCount = (uint32_t)indices.size();
+        outVB = device.CreateBuffer(ERHIBufferType::Vertex, (uint32_t)(vertices.size() * sizeof(FVertex)), ERHIBufferUsage::Static, vertices.data());
+        outIB = device.CreateBuffer(ERHIBufferType::Index, (uint32_t)(indices.size() * sizeof(uint32_t)), ERHIBufferUsage::Static, indices.data());
+    }
+
 }

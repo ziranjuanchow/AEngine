@@ -14,15 +14,16 @@
 
 ## Phase 2: 阴影采样与基础实现 (Hard Shadows)
 
-- [ ] Task: 光源空间变换计算
-    - [ ] [TDD] 验证光源投影矩阵 (Orthographic) 的计算正确性
-    - [ ] 实现计算 Directional Light View-Projection 矩阵的工具函数
-- [ ] Task: 更新 PBR 材质与 Shader
-    - [ ] 在 `StandardPBR.frag` 中增加阴影图采样器与 LightSpaceMatrix Uniform
-    - [ ] 实现标准深度对比逻辑 (Standard Shadow Mapping)
-- [ ] Task: 实现基础 Shadow Bias
-    - [ ] 在 UI 中提供 Bias调节，并验证其对“阴影粉刺 (Acne)”的修复效果
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: 阴影采样与基础实现 (Hard Shadows)' (Protocol in workflow.md)
+- [x] Task: 光源空间变换计算
+    - [x] [TDD] 验证光源投影矩阵 (Orthographic) 的计算正确性 (tests/ShadowTests.cpp)
+    - [x] 实现计算 Directional Light View-Projection 矩阵的工具函数 (在 main.cpp 中集成)
+- [x] Task: 更新 PBR 材质与 Shader
+    - [x] 在 `StandardPBR.frag` 中增加阴影图采样器与 LightSpaceMatrix Uniform
+    - [x] 实现标准深度对比逻辑 (Standard Shadow Mapping)
+- [x] Task: 实现基础 Shadow Bias
+    - [x] 在 `FOpenGLCommandBuffer` 中实现 `SetDepthBias` (src/RHI/OpenGL/OpenGLCommandBuffer.cpp)
+    - [x] 在 `FShadowPass` 中应用 Bias (src/RHI/ShadowPass.cpp)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: 阴影采样与基础实现 (Hard Shadows)' (Protocol in workflow.md)
 
 ## Phase 3: 高级过滤 (PCF) 与多方案切换
 

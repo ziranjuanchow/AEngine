@@ -7,28 +7,49 @@ layout (location = 1) in vec3 Normal;
 layout (location = 2) in vec2 TexCoords;
 
 // Material parameters
-layout (location = 3) uniform vec3 albedo;
-layout (location = 4) uniform float metallic;
-layout (location = 5) uniform float roughness;
-layout (location = 6) uniform float ao;
+layout (location = 20) uniform vec3 albedo;
+layout (location = 21) uniform float metallic;
+layout (location = 22) uniform float roughness;
+layout (location = 23) uniform float ao;
 
 // Light parameters
-layout (location = 7) uniform vec3 lightPosition;
-layout (location = 8) uniform vec3 lightColor;
-layout (location = 9) uniform vec3 camPos;
+layout (location = 24) uniform vec3 lightPosition;
+layout (location = 25) uniform vec3 lightColor;
+layout (location = 26) uniform vec3 camPos;
 
 // IBL parameters
-layout (location = 10) uniform samplerCube irradianceMap;
-layout (location = 11) uniform samplerCube prefilterMap;
-layout (location = 12) uniform sampler2D brdfLUT;
+layout (location = 27) uniform samplerCube irradianceMap;
+layout (location = 28) uniform samplerCube prefilterMap;
+layout (location = 29) uniform sampler2D brdfLUT;
 
 // Texture parameters
-layout (location = 13) uniform sampler2D albedoMap;
-layout (location = 14) uniform sampler2D normalMap;
-layout (location = 15) uniform int useAlbedoMap;
-layout (location = 16) uniform int useNormalMap;
+layout (location = 30) uniform sampler2D albedoMap;
+layout (location = 31) uniform sampler2D normalMap;
+layout (location = 32) uniform int useAlbedoMap;
+layout (location = 33) uniform int useNormalMap;
+
+layout (location = 34) uniform sampler2DShadow shadowMap;
+
+layout (location = 3) in vec4 FragPosLightSpace;
 
 const float PI = 3.14159265359;
+
+// --- Shadow Calculation ---
+float ShadowCalculation(vec4 fragPosLightSpace) {
+    // perform perspective divide
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // transform to [0,1] range
+    projCoords = projCoords * 0.5 + 0.5;
+    
+    // check if outside light frustum
+    if(projCoords.z > 1.0) return 0.0;
+
+    // Direct hardware PCF (if GL_COMPARE_REF_TO_TEXTURE is enabled)
+    // sampler2DShadow texture() returns float (0..1)
+    float shadow = 1.0 - texture(shadowMap, projCoords);
+    
+    return shadow;
+}
 
 // --- BRDF Functions ---
 
@@ -114,7 +135,8 @@ void main()
 
     float NdotL = max(dot(N, L), 0.0);        
 
-    Lo += (kD * baseColor / PI + specular) * radiance * NdotL;
+    float shadow = ShadowCalculation(FragPosLightSpace);
+    Lo += (1.0 - shadow) * (kD * baseColor / PI + specular) * radiance * NdotL;
 
     // --- IBL Part ---
     vec3 F_ibl = fresnelSchlickRoughness(max(dot(N, V), 0.0), F0, roughness);

@@ -14,6 +14,7 @@ namespace AEngine {
         virtual std::string GetName() const override { return "ShadowPass"; }
 
         glm::mat4 GetLightSpaceMatrix() const { return m_lightSpaceMatrix; }
+        std::shared_ptr<IRHITexture> GetDepthMap() const { return m_framebuffer->GetDepthAttachment(); }
 
     private:
         std::shared_ptr<IRHIFramebuffer> m_framebuffer;

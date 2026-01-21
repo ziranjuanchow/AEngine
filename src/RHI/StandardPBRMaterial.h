@@ -32,6 +32,9 @@ namespace AEngine {
         int m_useAlbedoMap = 0;
         int m_useNormalMap = 0;
 
+        std::shared_ptr<IRHITexture> m_shadowMap;
+        glm::mat4 m_lightSpaceMatrix{ 1.0f };
+
         // Global context parameters
         glm::vec3 m_lightPosition{ 0.0f };
         glm::vec3 m_lightColor{ 1.0f };

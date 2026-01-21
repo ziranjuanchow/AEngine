@@ -25,6 +25,7 @@ namespace AEngine {
         // Lighting
         glm::vec3 LightPosition;
         glm::vec3 LightColor;
+        glm::mat4 LightSpaceMatrix;
     };
 
     class FRenderPass {

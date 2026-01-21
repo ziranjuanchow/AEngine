@@ -20,6 +20,7 @@ namespace AEngine {
             renderable.Material->SetParameter("model_matrix", renderable.WorldMatrix); // Just placeholder names
             renderable.Material->SetParameter("view_matrix", context.ViewMatrix);
             renderable.Material->SetParameter("projection_matrix", context.ProjectionMatrix);
+            renderable.Material->SetParameter("lightSpaceMatrix", context.LightSpaceMatrix);
 
             // 3. Bind Material (sets GL program and uniforms)
             renderable.Material->Bind();

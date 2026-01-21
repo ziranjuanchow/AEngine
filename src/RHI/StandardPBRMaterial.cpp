@@ -75,47 +75,52 @@ namespace AEngine {
         if (m_program) {
             glUseProgram(m_program);
             
-            glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(m_model));
-            glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(m_view));
-            glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(m_projection));
-
-            glUniform3fv(3, 1, &m_albedo[0]);
-            glUniform1f(4, m_metallic);
-            glUniform1f(5, m_roughness);
-            glUniform1f(6, m_ao);
-
-            glUniform3fv(7, 1, glm::value_ptr(m_lightPosition));
-            glUniform3fv(8, 1, glm::value_ptr(m_lightColor));
-            glUniform3fv(9, 1, glm::value_ptr(m_camPos));
-
-            glUniform1i(10, 0); 
-            glUniform1i(11, 1); 
-            glUniform1i(12, 2); 
-
-            // Material Textures
-            if (m_albedoMap) {
-                // Cast to OpenGL texture
-                // In a clean RHI, we would use IRHITexture interface or TextureView
-                // But we know it's FOpenGLTexture
-                auto* glTex = static_cast<FOpenGLTexture*>(m_albedoMap.get());
-                glActiveTexture(GL_TEXTURE3);
-                glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
-                glUniform1i(13, 3);
-                glUniform1i(15, 1); // useAlbedoMap = true
-            } else {
-                glUniform1i(15, 0);
-            }
-
-            if (m_normalMap) {
-                auto* glTex = static_cast<FOpenGLTexture*>(m_normalMap.get());
-                glActiveTexture(GL_TEXTURE4);
-                glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
-                glUniform1i(14, 4);
-                glUniform1i(16, 1); // useNormalMap = true
-            } else {
-                glUniform1i(16, 0);
-            }
-        }
+            glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(m_model));      // model
+            glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(m_view));       // view
+                        glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(m_projection)); // projection
+                        glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(m_lightSpaceMatrix)); // lightSpaceMatrix
+            
+                        glUniform3fv(20, 1, &m_albedo[0]); // albedo
+                        glUniform1f(21, m_metallic);       // metallic
+                        glUniform1f(22, m_roughness);      // roughness
+                        glUniform1f(23, m_ao);             // ao
+            
+                        glUniform3fv(24, 1, glm::value_ptr(m_lightPosition)); // lightPosition
+                        glUniform3fv(25, 1, glm::value_ptr(m_lightColor));    // lightColor
+                        glUniform3fv(26, 1, glm::value_ptr(m_camPos));        // camPos
+            
+                        // IBL Samplers
+                        glUniform1i(27, 0); // irradianceMap
+                        glUniform1i(28, 1); // prefilterMap
+                        glUniform1i(29, 2); // brdfLUT
+            
+                        // Material Textures
+                        if (m_albedoMap) {
+                            auto* glTex = static_cast<FOpenGLTexture*>(m_albedoMap.get());
+                            glActiveTexture(GL_TEXTURE3);
+                            glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
+                            glUniform1i(30, 3);
+                            glUniform1i(32, 1); // useAlbedoMap = true
+                        } else {
+                            glUniform1i(32, 0);
+                        }
+            
+                        if (m_normalMap) {
+                            auto* glTex = static_cast<FOpenGLTexture*>(m_normalMap.get());
+                            glActiveTexture(GL_TEXTURE4);
+                            glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
+                            glUniform1i(31, 4);
+                            glUniform1i(33, 1); // useNormalMap = true
+                        } else {
+                            glUniform1i(33, 0);
+                        }
+            
+                        if (m_shadowMap) {
+                            auto* glTex = static_cast<FOpenGLTexture*>(m_shadowMap.get());
+                            glActiveTexture(GL_TEXTURE5);
+                            glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
+                            glUniform1i(34, 5);
+                        }        }
     }
 
     void FStandardPBRMaterial::SetParameter(const std::string& name, const FMaterialParamValue& value) {
@@ -129,8 +134,10 @@ namespace AEngine {
         else if (name == "model_matrix") m_model = std::get<glm::mat4>(value);
         else if (name == "view_matrix") m_view = std::get<glm::mat4>(value);
         else if (name == "projection_matrix") m_projection = std::get<glm::mat4>(value);
+        else if (name == "lightSpaceMatrix") m_lightSpaceMatrix = std::get<glm::mat4>(value);
         else if (name == "albedoMap") m_albedoMap = std::get<std::shared_ptr<IRHITexture>>(value);
         else if (name == "normalMap") m_normalMap = std::get<std::shared_ptr<IRHITexture>>(value);
+        else if (name == "shadowMap") m_shadowMap = std::get<std::shared_ptr<IRHITexture>>(value);
     }
 
 }

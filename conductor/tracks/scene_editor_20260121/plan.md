@@ -10,7 +10,7 @@
     - [x] 在 `SandboxApp` 中实现 `CollectRenderables(FSceneNode* node, ...)` 逻辑，替换目前的扁平列表
 - [x] Task: Conductor - User Manual Verification 'Phase 1: 场景基础设施增强' (Protocol in workflow.md)
 
-## Phase 2: 场景大纲面板 (Scene Outliner)
+## Phase 2: 场景大纲面板 (Scene Outliner) [checkpoint: 624c2ee]
 
 - [x] Task: 实现树状大纲 UI
     - [x] 编写递归函数使用 `ImGui::TreeNode` 显示场景结构 (main.cpp)
@@ -18,7 +18,7 @@
 - [x] Task: 增加节点操作功能
     - [x] 实现右键菜单：删除选中节点、重命名节点 (重命名放在属性面板)
     - [x] 实现可见性开关（眼睛图标）的 UI 绑定 (Checkbox)
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: 场景大纲面板' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: 场景大纲面板' (Protocol in workflow.md)
 
 ## Phase 3: 属性检查器面板 (Inspector)
 

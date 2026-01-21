@@ -1,109 +1,157 @@
 #include <iostream>
 #include <glad/glad.h>
+#include "Core/FApplication.h"
 #include "Core/Log.h"
-#include "Core/Engine.h"
-#include "Core/WindowSubsystem.h"
 #include "Core/PluginManager.h"
 #include "Core/GeometryUtils.h"
+#include "Core/AssetLoader.h"
 #include "RHI/OpenGL/OpenGLDevice.h"
 #include "RHI/ForwardLitPass.h"
 #include "RHI/StandardPBRMaterial.h"
 #include <imgui.h>
-#include <imgui_impl_opengl3.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <portable-file-dialogs.h>
 
-int main() {
-    using namespace AEngine;
+using namespace AEngine;
 
-    Log::Init();
-    AE_CORE_INFO("AEngine PBR Demo Starting...");
+class SandboxApp : public FApplication {
+public:
+    SandboxApp() : FApplication({ "AEngine Sandbox", 1600, 900 }) {}
 
-    auto& engine = UEngine::Get();
-    auto windowSubsystem = std::make_unique<UWindowSubsystem>();
-    UWindowSubsystem* windowPtr = windowSubsystem.get();
-    engine.RegisterSubsystem(std::move(windowSubsystem));
-    engine.Init();
+    virtual void OnInit() override {
+        AE_CORE_INFO("SandboxApp Init");
 
-    // RHI & Pipeline Setup
-    auto device = std::make_shared<FOpenGLDevice>();
-    auto renderGraph = std::make_unique<FRenderGraph>();
-    renderGraph->AddPass(std::make_unique<FForwardLitPass>());
+        // Load Plugin (Optional)
+        auto& pluginManager = APluginManager::Get();
+        if (auto loadResult = pluginManager.LoadPlugin("StatsPanel.dll"); !loadResult) {
+            AE_CORE_ERROR("Failed to load StatsPanel plugin!");
+        }
 
-    // Material Setup
-    auto pbrMat = std::make_shared<FStandardPBRMaterial>("StandardPBR");
-    pbrMat->LoadShaders("shaders/StandardPBR.vert", "shaders/StandardPBR.frag");
-    pbrMat->SetParameter("albedo", glm::vec3(0.5f, 0.0f, 0.0f)); // Red
-    pbrMat->SetParameter("ao", 1.0f);
+        // RHI & Pipeline Setup
+        m_device = std::make_shared<FOpenGLDevice>();
+        m_renderGraph = std::make_unique<FRenderGraph>();
+        m_renderGraph->AddPass(std::make_unique<FForwardLitPass>());
 
-    // Geometry Setup
-    std::shared_ptr<IRHIBuffer> sphereVB, sphereIB;
-    uint32_t sphereIndexCount;
-    FGeometryUtils::CreateSphere(*device, sphereVB, sphereIB, sphereIndexCount);
+        // Material Setup
+        m_pbrMat = std::make_shared<FStandardPBRMaterial>("StandardPBR");
+        m_pbrMat->LoadShaders("shaders/StandardPBR.vert", "shaders/StandardPBR.frag");
+        m_pbrMat->SetParameter("albedo", glm::vec3(0.5f, 0.0f, 0.0f)); // Red
+        m_pbrMat->SetParameter("ao", 1.0f);
 
-    // Scene Setup (Manual for now)
-    std::vector<FRenderable> scene;
-    for (int i = 0; i < 5; ++i) {
-        FRenderable r;
-        r.VertexBuffer = sphereVB;
-        r.IndexBuffer = sphereIB;
-        r.IndexCount = sphereIndexCount;
-        r.Material = pbrMat;
-        r.WorldMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(i * 2.5f - 5.0f, 0.0f, 0.0f));
-        scene.push_back(r);
+        // Geometry Setup (Fallback)
+        uint32_t sphereIndexCount;
+        FGeometryUtils::CreateSphere(*m_device, m_sphereVB, m_sphereIB, sphereIndexCount);
+
+        // Initial Scene Setup
+        for (int i = 0; i < 5; ++i) {
+            FRenderable r;
+            r.VertexBuffer = m_sphereVB;
+            r.IndexBuffer = m_sphereIB;
+            r.IndexCount = sphereIndexCount;
+            r.Material = m_pbrMat;
+            r.WorldMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(i * 2.5f - 5.0f, 0.0f, 0.0f));
+            m_scene.push_back(r);
+        }
+
+        m_cmdBuffer = m_device->CreateCommandBuffer();
     }
 
-    auto cmdBuffer = device->CreateCommandBuffer();
-
-    while (!windowPtr->ShouldClose()) {
-        windowPtr->Update();
-
-        // UI
-        ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
-        ImGui::Begin("Material Editor");
-        static float metallic = 0.5f;
-        static float roughness = 0.5f;
-        ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f);
-        ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f);
-        pbrMat->SetParameter("metallic", metallic);
-        pbrMat->SetParameter("roughness", roughness);
-        ImGui::End();
-
-        // Render
+    virtual void OnUpdate(float deltaTime) override {
+        // Clear Screen
         int w, h;
-        glfwGetFramebufferSize(windowPtr->GetNativeWindow(), &w, &h);
-        
-        FRenderContext ctx;
-        ctx.ViewMatrix = glm::lookAt(glm::vec3(0, 0, 10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
-        ctx.ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 100.0f);
-        ctx.CameraPosition = glm::vec3(0, 0, 10);
-        ctx.LightPosition = glm::vec3(10.0f, 10.0f, 10.0f);
-        ctx.LightColor = glm::vec3(150.0f, 150.0f, 150.0f); // Bright light
-
+        glfwGetFramebufferSize(m_window->GetNativeWindow(), &w, &h);
         glViewport(0, 0, w, h);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glEnable(GL_DEPTH_TEST);
 
-        cmdBuffer->Begin();
-        renderGraph->Execute(*cmdBuffer, ctx, scene);
-        cmdBuffer->End();
+        // Prepare Render Context
+        FRenderContext ctx;
+        ctx.ViewMatrix = glm::lookAt(glm::vec3(0, 0, 10), glm::vec3(0, 0, 0), glm::vec3(0, 1, 0));
+        ctx.ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 100.0f);
+        ctx.CameraPosition = glm::vec3(0, 0, 10);
+        ctx.LightPosition = glm::vec3(10.0f, 10.0f, 10.0f);
+        ctx.LightColor = glm::vec3(150.0f, 150.0f, 150.0f);
 
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            GLFWwindow* backup = glfwGetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backup);
-        }
-
-        glfwSwapBuffers(windowPtr->GetNativeWindow());
+        // Execute Render Graph
+        m_cmdBuffer->Begin();
+        m_renderGraph->Execute(*m_cmdBuffer, ctx, m_scene);
+        m_cmdBuffer->End();
     }
 
-    engine.Shutdown();
+    virtual void OnImGuiRender() override {
+        auto& pluginManager = APluginManager::Get();
+        if (auto* stats = pluginManager.GetPlugin("StatsPanel")) {
+            stats->OnImGuiRender();
+        }
+
+        ImGui::Begin("Asset Loader");
+        static char modelPath[256] = "";
+        ImGui::InputText("Model Path", modelPath, 256);
+        
+        if (ImGui::Button("Browse...")) {
+            auto selection = pfd::open_file("Select a 3D Model", ".",
+                                { "3D Models", "*.obj *.fbx *.gltf *.glb",
+                                  "All Files", "*" }).result();
+            if (!selection.empty()) {
+                strncpy(modelPath, selection[0].c_str(), 256);
+            }
+        }
+        ImGui::SameLine();
+
+        if (ImGui::Button("Load Model")) {
+            if (auto newModel = FAssetLoader::LoadModel(*m_device, modelPath)) {
+                m_currentModel = newModel;
+                m_scene = m_currentModel->Renderables; 
+            }
+        }
+        ImGui::End();
+
+        ImGui::Begin("Material Editor");
+        static float metallic = 0.5f;
+        static float roughness = 0.5f;
+        
+        bool updateMat = false;
+        if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f)) updateMat = true;
+        if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f)) updateMat = true;
+        
+        if (updateMat) {
+            // Update default material
+            m_pbrMat->SetParameter("metallic", metallic);
+            m_pbrMat->SetParameter("roughness", roughness);
+
+            // Update loaded model materials
+            if (m_currentModel) {
+                for (auto& mesh : m_currentModel->Meshes) {
+                    if (mesh.Material) {
+                        mesh.Material->SetParameter("metallic", metallic);
+                        mesh.Material->SetParameter("roughness", roughness);
+                    }
+                }
+            }
+        }
+        ImGui::End();
+    }
+
+private:
+    std::shared_ptr<FOpenGLDevice> m_device;
+    std::unique_ptr<FRenderGraph> m_renderGraph;
+    std::shared_ptr<IRHICommandBuffer> m_cmdBuffer;
     
-    std::cout << "Press Enter to exit..." << std::endl;
-    std::cin.get();
+    std::shared_ptr<FStandardPBRMaterial> m_pbrMat;
+    std::shared_ptr<IRHIBuffer> m_sphereVB, m_sphereIB;
+    
+    std::vector<FRenderable> m_scene;
+    std::shared_ptr<FModel> m_currentModel;
+};
+
+AEngine::FApplication* AEngine::CreateApplication() {
+    return new SandboxApp();
+}
+
+int main() {
+    auto* app = AEngine::CreateApplication();
+    app->Run();
+    delete app;
     return 0;
 }

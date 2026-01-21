@@ -1,4 +1,4 @@
-# Track assimp_loading_20260120 Context
+# Track refactor_perf_20260121 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

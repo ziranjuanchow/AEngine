@@ -22,6 +22,7 @@
     "catch2",
     "tl-expected",
     "glslang",
-    "spirv-cross"
+    "spirv-cross",
+    "portable-file-dialogs"
   ]
 }

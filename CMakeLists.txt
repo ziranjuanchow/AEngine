@@ -32,6 +32,7 @@ add_executable(AEngine
     src/Core/Engine.cpp
     src/Core/PluginManager.cpp
     src/Core/WindowSubsystem.cpp
+    src/Core/FApplication.cpp
     src/Core/SceneNode.cpp
     src/Core/ShaderCompiler.cpp
     src/RHI/OpenGL/OpenGLResources.cpp

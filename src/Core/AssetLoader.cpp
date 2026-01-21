@@ -111,7 +111,7 @@ namespace AEngine {
         }
     }
 
-    std::shared_ptr<FModel> FAssetLoader::LoadModel(const std::string& path) {
+    std::shared_ptr<FModel> FAssetLoader::LoadModel(IRHIDevice& device, const std::string& path) {
         Assimp::Importer importer;
         const aiScene* scene = importer.ReadFile(path, 
             aiProcess_Triangulate | 
@@ -130,25 +130,14 @@ namespace AEngine {
         for (unsigned int i = 0; i < scene->mNumMaterials; i++) {
             aiMaterial* aiMat = scene->mMaterials[i];
             auto mat = std::make_shared<FStandardPBRMaterial>("AssimpMat_" + std::to_string(i));
-            
-            // Note: We need a way to set shaders for these materials.
-            // For now, we assume a global shader cache or load them manually.
-            // In Phase 3, we will handle this better. 
-            // For now, let's just set parameters.
-            // WARNING: Without shaders, Bind() will fail or do nothing if m_program is 0.
-            // We should load default shaders here.
             mat->LoadShaders("shaders/StandardPBR.vert", "shaders/StandardPBR.frag");
 
-            // Diffuse / Albedo
             if (auto tex = LoadTextureForMaterial(aiMat, aiTextureType_DIFFUSE, path)) {
                 mat->SetParameter("albedoMap", tex);
             }
-            
-            // Normal
             if (auto tex = LoadTextureForMaterial(aiMat, aiTextureType_NORMALS, path)) {
                 mat->SetParameter("normalMap", tex);
             } else if (auto tex = LoadTextureForMaterial(aiMat, aiTextureType_HEIGHT, path)) {
-                // Some formats use Height for Normal map
                 mat->SetParameter("normalMap", tex);
             }
 
@@ -158,7 +147,19 @@ namespace AEngine {
         auto model = std::make_shared<FModel>();
         ProcessNode(scene->mRootNode, scene, *model, materials);
 
-        AE_CORE_INFO("Loaded model: {0} ({1} meshes)", path, model->Meshes.size());
+        // Upload to GPU and create Renderables
+        for (auto& mesh : model->Meshes) {
+            FRenderable renderable;
+            renderable.VertexBuffer = device.CreateBuffer(ERHIBufferType::Vertex, (uint32_t)(mesh.Vertices.size() * sizeof(FVertex)), ERHIBufferUsage::Static, mesh.Vertices.data());
+            renderable.IndexBuffer = device.CreateBuffer(ERHIBufferType::Index, (uint32_t)(mesh.Indices.size() * sizeof(uint32_t)), ERHIBufferUsage::Static, mesh.Indices.data());
+            renderable.IndexCount = (uint32_t)mesh.Indices.size();
+            renderable.Material = mesh.Material;
+            renderable.WorldMatrix = glm::mat4(1.0f); // Default position
+
+            model->Renderables.push_back(renderable);
+        }
+
+        AE_CORE_INFO("Loaded model and uploaded to GPU: {0} ({1} meshes)", path, model->Meshes.size());
         return model;
     }
 

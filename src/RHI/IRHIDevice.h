@@ -7,6 +7,11 @@
 
 namespace AEngine {
 
+    /**
+     * @brief Abstraction for recording rendering commands.
+     * 
+     * Encapsulates draw calls, state changes, and resource binding.
+     */
     class IRHICommandBuffer {
     public:
         virtual ~IRHICommandBuffer() = default;
@@ -25,6 +30,11 @@ namespace AEngine {
         virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1) = 0;
     };
 
+    /**
+     * @brief Abstraction for the Graphics Device.
+     * 
+     * Responsible for creating resources (buffers, textures) and managing command buffers.
+     */
     class IRHIDevice {
     public:
         virtual ~IRHIDevice() = default;

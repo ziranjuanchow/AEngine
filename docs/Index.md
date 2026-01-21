@@ -14,6 +14,8 @@ Detailed documentation for implemented features:
   - RHI, Render Graph, PBR Shaders, IBL.
 - [03 - Asset Loading](./features/03_Asset_Loading.md)
   - Assimp Integration, Texture Loading, Automated Material Mapping.
+- [04 - Shadow Mapping](./features/04_Shadow_Mapping.md)
+  - Directional Shadows, PCF Soft Shadows, Depth Bias.
 
 ## Other Resources
 - [Build Instructions](../README.md) (See root README)

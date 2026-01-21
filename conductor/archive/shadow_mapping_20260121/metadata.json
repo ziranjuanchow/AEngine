@@ -1,0 +1,8 @@
+{
+  "track_id": "shadow_mapping_20260121",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-21T13:55:00Z",
+  "updated_at": "2026-01-21T13:55:00Z",
+  "description": "实现实时阴影映射渲染，支持方向光阴影生成、PCF 软阴影过滤以及多技术方案切换。"
+}

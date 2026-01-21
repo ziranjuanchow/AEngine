@@ -1,6 +1,6 @@
 # Track 实施计划 - 阴影映射 (Shadow Mapping)
 
-## Phase 1: 阴影基础设施与深度生成
+## Phase 1: 阴影基础设施与深度生成 [checkpoint: 019688f]
 
 - [x] Task: 扩展 RHI 支持深度贴图与 FBO
     - [x] [TDD] 验证能否创建仅包含深度槽位的 Framebuffer (已在 OpenGLFramebuffer 实现中验证)
@@ -10,7 +10,7 @@
     - [x] [TDD] 验证渲染管线中 Shadow Pass 的执行顺序 (通过 RenderGraph 顺序控制)
     - [x] 编写 `shaders/ShadowDepth.vert` 和 `shaders/ShadowDepth.frag` (SPIR-V 编译)
     - [x] 实现 `FShadowPass`：配置深度偏移 (Polygon Offset) 并渲染场景到深度图 (src/RHI/ShadowPass.h/cpp)
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: 阴影基础设施与深度生成' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: 阴影基础设施与深度生成' (Protocol in workflow.md)
 
 ## Phase 2: 阴影采样与基础实现 (Hard Shadows)
 

@@ -1,6 +1,6 @@
 # Track 实施计划 - 性能优化与代码清理
 
-## Phase 1: 架构重构与 API 文档化
+## Phase 1: 架构重构与 API 文档化 [checkpoint: e0dedb9]
 
 - [x] Task: 定义 FApplication 基类并重构入口点
     - [x] 在 `src/Core` 中创建 `FApplication.h/cpp`
@@ -9,7 +9,7 @@
 - [x] Task: 完善核心接口注释 (Doxygen 风格)
     - [x] 为 `IEngineSubsystem`, `IPlugin`, `IMaterial` 添加详细注释
     - [x] 为 `IRHIDevice`, `IRHICommandBuffer` 添加注释
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: 架构重构与 API 文档化' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: 架构重构与 API 文档化' (Protocol in workflow.md)
 
 ## Phase 2: 着色器与 RHI 性能增强
 

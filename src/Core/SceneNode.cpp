@@ -11,6 +11,12 @@ namespace AEngine {
         m_children.push_back(std::move(child));
     }
 
+    void FSceneNode::RemoveChild(FSceneNode* child) {
+        std::erase_if(m_children, [&](const std::unique_ptr<FSceneNode>& ptr) {
+            return ptr.get() == child;
+        });
+    }
+
     void FSceneNode::UpdateWorldMatrix(bool parentDirty) {
         bool dirty = m_dirty || parentDirty;
 

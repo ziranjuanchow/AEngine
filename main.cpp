@@ -94,6 +94,12 @@ public:
     }
 
     virtual void OnUpdate(float deltaTime) override {
+        // Execute deferred actions (e.g. node deletion)
+        for (auto& action : m_deferredActions) {
+            action();
+        }
+        m_deferredActions.clear();
+
         // Camera Control
         GLFWwindow* window = m_window->GetNativeWindow();
         
@@ -195,6 +201,12 @@ public:
             stats->OnImGuiRender();
         }
 
+        ImGui::Begin("Scene Hierarchy");
+        if (m_rootNode) {
+            DrawSceneNode(m_rootNode.get());
+        }
+        ImGui::End();
+
         ImGui::Begin("Asset Loader");
         static char modelPath[256] = "";
         ImGui::InputText("Model Path", modelPath, 256);
@@ -211,7 +223,20 @@ public:
 
         if (ImGui::Button("Load Model")) {
             if (auto newModel = FAssetLoader::LoadModel(*m_device, modelPath)) {
-                // ...
+                // Create a container node for the model
+                auto modelNode = std::make_unique<FSceneNode>("ImportedModel");
+                
+                for (size_t i = 0; i < newModel->Renderables.size(); ++i) {
+                    auto meshNode = std::make_unique<FSceneNode>("Mesh_" + std::to_string(i));
+                    meshNode->AddRenderable(newModel->Renderables[i]);
+                    modelNode->AddChild(std::move(meshNode));
+                }
+
+                if (m_selectedNode) {
+                    m_selectedNode->AddChild(std::move(modelNode));
+                } else {
+                    m_rootNode->AddChild(std::move(modelNode));
+                }
             }
         }
         
@@ -269,8 +294,10 @@ private:
     
     // Scene
     std::unique_ptr<FSceneNode> m_rootNode;
+    FSceneNode* m_selectedNode = nullptr;
     std::vector<FRenderable> m_scene; // Flattened list for rendering
     std::shared_ptr<FModel> m_currentModel;
+    std::vector<std::function<void()>> m_deferredActions;
 
     void CollectRenderables(FSceneNode* node, std::vector<FRenderable>& outList) {
         if (!node->IsVisible()) return;
@@ -285,6 +312,52 @@ private:
         // Recurse
         for (const auto& child : node->GetChildren()) {
             CollectRenderables(child.get(), outList);
+        }
+    }
+
+    void DrawSceneNode(FSceneNode* node) {
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick;
+        if (node == m_selectedNode) flags |= ImGuiTreeNodeFlags_Selected;
+        if (node->GetChildren().empty()) flags |= ImGuiTreeNodeFlags_Leaf;
+
+        // Visibility Toggle
+        bool isVisible = node->IsVisible();
+        ImGui::PushID(node);
+        if (ImGui::Checkbox("##Visible", &isVisible)) {
+            node->SetVisible(isVisible);
+        }
+        ImGui::PopID();
+        ImGui::SameLine();
+
+        bool opened = ImGui::TreeNodeEx((void*)node, flags, node->GetName().c_str());
+        
+        if (ImGui::IsItemClicked()) {
+            m_selectedNode = node;
+        }
+
+        // Context Menu
+        if (ImGui::BeginPopupContextItem()) {
+            if (ImGui::MenuItem("Delete")) {
+                if (node->GetParent()) {
+                    m_deferredActions.push_back([node]() {
+                        node->GetParent()->RemoveChild(node);
+                    });
+                    if (m_selectedNode == node) m_selectedNode = nullptr;
+                }
+            }
+            if (ImGui::MenuItem("Rename")) {
+                // Open rename popup (simplified: just log for now, need a stateful popup)
+                // For MVP, we use a static buffer in a separate window or just InputText in Property Panel
+                // Let's rely on Property Panel for Renaming to keep tree logic simple.
+            }
+            ImGui::EndPopup();
+        }
+
+        if (opened) {
+            for (const auto& child : node->GetChildren()) {
+                DrawSceneNode(child.get());
+            }
+            ImGui::TreePop();
         }
     }
 

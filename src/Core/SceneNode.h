@@ -30,7 +30,9 @@ namespace AEngine {
 
         // Hierarchy
         void AddChild(std::unique_ptr<FSceneNode> child);
+        void RemoveChild(FSceneNode* child);
         void SetParent(FSceneNode* parent) { m_parent = parent; m_dirty = true; }
+        FSceneNode* GetParent() const { return m_parent; }
 
         // Update matrices
         // parentDirty indicates if the parent's world matrix has changed

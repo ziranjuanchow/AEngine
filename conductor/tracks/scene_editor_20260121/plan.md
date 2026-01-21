@@ -12,12 +12,12 @@
 
 ## Phase 2: 场景大纲面板 (Scene Outliner)
 
-- [ ] Task: 实现树状大纲 UI
-    - [ ] 编写递归函数使用 `ImGui::TreeNode` 显示场景结构
-    - [ ] 实现基础的单选与多选逻辑 (Selection State)
-- [ ] Task: 增加节点操作功能
-    - [ ] 实现右键菜单：删除选中节点、重命名节点
-    - [ ] 实现可见性开关（眼睛图标）的 UI 绑定
+- [x] Task: 实现树状大纲 UI
+    - [x] 编写递归函数使用 `ImGui::TreeNode` 显示场景结构 (main.cpp)
+    - [x] 实现基础的单选与多选逻辑 (Selection State)
+- [x] Task: 增加节点操作功能
+    - [x] 实现右键菜单：删除选中节点、重命名节点 (重命名放在属性面板)
+    - [x] 实现可见性开关（眼睛图标）的 UI 绑定 (Checkbox)
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: 场景大纲面板' (Protocol in workflow.md)
 
 ## Phase 3: 属性检查器面板 (Inspector)

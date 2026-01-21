@@ -193,6 +193,17 @@ namespace AEngine {
     AEngine::expected<std::vector<uint32_t>, ShaderCompilerError> FShaderCompiler::CompileGLSL(EShaderStage stage, const std::string& source) {
         if (!m_initialized) Init();
 
+        // 1. Check Cache
+        size_t sourceHash = std::hash<std::string>{}(source);
+        size_t combinedHash = sourceHash ^ (static_cast<size_t>(stage) << 1); // Combine with stage
+
+        if (m_cache.contains(combinedHash)) {
+            AE_CORE_TRACE("Shader Cache HIT for hash {0}", combinedHash);
+            return m_cache[combinedHash];
+        }
+
+        AE_CORE_INFO("Shader Cache MISS. Compiling shader...");
+
         EShLanguage lang = GetLanguage(stage);
         glslang::TShader shader(lang);
         
@@ -231,6 +242,8 @@ namespace AEngine {
         glslang::GlslangToSpv(*program.getIntermediate(lang), spirv);
 
         AE_CORE_INFO("Shader compiled to SPIR-V successfully.");
+        
+        m_cache[combinedHash] = spirv;
         return spirv;
     }
 

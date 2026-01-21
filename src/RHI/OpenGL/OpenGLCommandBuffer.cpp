@@ -16,48 +16,60 @@ namespace AEngine {
     void FOpenGLCommandBuffer::SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) {
         if (pso) {
             auto* glPSO = static_cast<FOpenGLPipelineState*>(pso.get());
-            glUseProgram(glPSO->GetProgram());
+            GLuint program = glPSO->GetProgram();
+            
+            if (m_currentProgram != program) {
+                glUseProgram(program);
+                m_currentProgram = program;
+            }
         }
     }
 
     void FOpenGLCommandBuffer::SetVertexBuffer(std::shared_ptr<IRHIBuffer> buffer) {
         if (buffer) {
             auto* glBuffer = static_cast<FOpenGLBuffer*>(buffer.get());
-            
-            // For MVP, we use a global VAO or create one on the fly.
-            // Let's use a simple per-buffer VAO approach or just state tracking.
+            GLuint vbo = glBuffer->GetHandle();
+
             if (m_currentVAO == 0) {
                 glGenVertexArrays(1, &m_currentVAO);
             }
             glBindVertexArray(m_currentVAO);
             
-            glBindBuffer(GL_ARRAY_BUFFER, glBuffer->GetHandle());
-            
-            // Position
-            glEnableVertexAttribArray(0);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Position));
-            // Normal
-            glEnableVertexAttribArray(1);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Normal));
-            // TexCoords
-            glEnableVertexAttribArray(2);
-            glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, TexCoords));
-            // Tangent
-            glEnableVertexAttribArray(3);
-            glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Tangent));
-            // Bitangent
-            glEnableVertexAttribArray(4);
-            glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Bitangent));
-            // Color
-            glEnableVertexAttribArray(5);
-            glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Color));
+            if (m_currentVBO != vbo) {
+                glBindBuffer(GL_ARRAY_BUFFER, vbo);
+                m_currentVBO = vbo;
+
+                // Position
+                glEnableVertexAttribArray(0);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Position));
+                // Normal
+                glEnableVertexAttribArray(1);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Normal));
+                // TexCoords
+                glEnableVertexAttribArray(2);
+                glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, TexCoords));
+                // Tangent
+                glEnableVertexAttribArray(3);
+                glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Tangent));
+                // Bitangent
+                glEnableVertexAttribArray(4);
+                glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Bitangent));
+                // Color
+                glEnableVertexAttribArray(5);
+                glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(FVertex), (void*)offsetof(FVertex, Color));
+            }
         }
     }
 
     void FOpenGLCommandBuffer::SetIndexBuffer(std::shared_ptr<IRHIBuffer> buffer) {
         if (buffer) {
             auto* glBuffer = static_cast<FOpenGLBuffer*>(buffer.get());
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glBuffer->GetHandle());
+            GLuint ibo = glBuffer->GetHandle();
+
+            if (m_currentIndexBuffer != ibo) {
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+                m_currentIndexBuffer = ibo;
+            }
         }
     }
 

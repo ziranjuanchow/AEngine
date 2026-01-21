@@ -21,7 +21,10 @@ namespace AEngine {
         virtual void DrawIndexed(uint32_t indexCount, uint32_t instanceCount = 1) override;
 
     private:
-        GLuint m_currentVAO = 0; // We might need a simple VAO management
+        GLuint m_currentVAO = 0; 
+        GLuint m_currentProgram = 0;
+        GLuint m_currentVBO = 0;
+        GLuint m_currentIndexBuffer = 0;
     };
 
 }

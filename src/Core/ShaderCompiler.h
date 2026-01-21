@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <expected>
+#include <unordered_map>
 #include "Engine.h"
 
 namespace AEngine {
@@ -34,6 +35,7 @@ namespace AEngine {
         ~FShaderCompiler();
 
         bool m_initialized = false;
+        std::unordered_map<size_t, std::vector<uint32_t>> m_cache;
     };
 
 }

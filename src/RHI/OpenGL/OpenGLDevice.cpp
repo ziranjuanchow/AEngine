@@ -1,6 +1,7 @@
 #include "OpenGLDevice.h"
 #include "OpenGLResources.h"
 #include "OpenGLCommandBuffer.h"
+#include "OpenGLFramebuffer.h"
 #include <GLFW/glfw3.h>
 
 namespace AEngine {
@@ -11,6 +12,10 @@ namespace AEngine {
 
     std::shared_ptr<IRHITexture> FOpenGLDevice::CreateTexture(uint32_t width, uint32_t height, ERHIPixelFormat format, const void* data) {
         return std::make_shared<FOpenGLTexture>(width, height, format, data);
+    }
+
+    std::shared_ptr<IRHIFramebuffer> FOpenGLDevice::CreateFramebuffer(const FFramebufferConfig& config) {
+        return std::make_shared<FOpenGLFramebuffer>(config.Width, config.Height, config.DepthAttachment);
     }
 
     std::shared_ptr<IRHICommandBuffer> FOpenGLDevice::CreateCommandBuffer() {

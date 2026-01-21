@@ -13,6 +13,15 @@ namespace AEngine {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
     }
 
+    void FOpenGLCommandBuffer::SetDepthBias(float constant, float slope) {
+        if (constant != 0.0f || slope != 0.0f) {
+            glEnable(GL_POLYGON_OFFSET_FILL);
+            glPolygonOffset(constant, slope);
+        } else {
+            glDisable(GL_POLYGON_OFFSET_FILL);
+        }
+    }
+
     void FOpenGLCommandBuffer::SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) {
         if (pso) {
             auto* glPSO = static_cast<FOpenGLPipelineState*>(pso.get());

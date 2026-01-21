@@ -11,8 +11,10 @@ namespace AEngine {
         m_children.push_back(std::move(child));
     }
 
-    void FSceneNode::UpdateWorldMatrix() {
-        if (m_dirty) {
+    void FSceneNode::UpdateWorldMatrix(bool parentDirty) {
+        bool dirty = m_dirty || parentDirty;
+
+        if (dirty) {
             // Compute local matrix: T * R * S
             m_localMatrix = glm::translate(glm::mat4(1.0f), m_localPosition) *
                             glm::mat4_cast(m_localRotation) *
@@ -29,7 +31,7 @@ namespace AEngine {
 
         // Propagate to children
         for (auto& child : m_children) {
-            child->UpdateWorldMatrix();
+            child->UpdateWorldMatrix(dirty);
         }
     }
 

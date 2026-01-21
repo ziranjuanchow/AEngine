@@ -33,10 +33,33 @@ namespace AEngine {
             case ERHIPixelFormat::RGBA16_FLOAT: 
                 internalFormat = GL_RGBA16F; type = GL_HALF_FLOAT; break;
             case ERHIPixelFormat::D24_S8: 
-                internalFormat = GL_DEPTH24_STENCIL8; break;
+                internalFormat = GL_DEPTH24_STENCIL8; 
+                externalFormat = GL_DEPTH_STENCIL;
+                type = GL_UNSIGNED_INT_24_8;
+                break;
+            case ERHIPixelFormat::Depth24:
+                internalFormat = GL_DEPTH_COMPONENT24;
+                externalFormat = GL_DEPTH_COMPONENT;
+                type = GL_FLOAT;
+                break;
         }
 
         glTextureStorage2D(m_handle, 1, internalFormat, width, height);
+        
+        // Setup shadow parameters for Depth textures
+        if (format == ERHIPixelFormat::Depth24) {
+            glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTextureParameteri(m_handle, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+            glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+            float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+            glTextureParameterfv(m_handle, GL_TEXTURE_BORDER_COLOR, borderColor);
+            
+            // Enable hardware PCF comparison
+            glTextureParameteri(m_handle, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+            glTextureParameteri(m_handle, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+        }
+
         if (data) {
             glTextureSubImage2D(m_handle, 0, 0, 0, width, height, externalFormat, type, data);
         }

@@ -8,6 +8,7 @@ namespace AEngine {
     public:
         virtual std::shared_ptr<IRHIBuffer> CreateBuffer(ERHIBufferType type, uint32_t size, ERHIBufferUsage usage, const void* data = nullptr) override;
         virtual std::shared_ptr<IRHITexture> CreateTexture(uint32_t width, uint32_t height, ERHIPixelFormat format, const void* data = nullptr) override;
+        virtual std::shared_ptr<IRHIFramebuffer> CreateFramebuffer(const FFramebufferConfig& config) override;
         
         virtual std::shared_ptr<IRHICommandBuffer> CreateCommandBuffer() override;
         

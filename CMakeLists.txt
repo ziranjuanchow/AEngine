@@ -34,16 +34,19 @@ add_executable(AEngine
     src/Core/WindowSubsystem.cpp
     src/Core/FApplication.cpp
     src/Core/SceneNode.cpp
+    src/Core/GeometryUtils.cpp
     src/Core/ShaderCompiler.cpp
     src/RHI/OpenGL/OpenGLResources.cpp
     src/RHI/OpenGL/OpenGLCommandBuffer.cpp
     src/RHI/OpenGL/OpenGLDevice.cpp
+    src/RHI/OpenGL/OpenGLFramebuffer.cpp
     src/RHI/StandardPBRMaterial.cpp
     src/RHI/ForwardLitPass.cpp
+    src/RHI/ShadowPass.cpp
     src/Core/AssetLoader.cpp
     src/RHI/IBLPreprocessor.cpp
-    src/Core/GeometryUtils.cpp
 )
+
 
 target_link_libraries(AEngine PRIVATE 
     spdlog::spdlog

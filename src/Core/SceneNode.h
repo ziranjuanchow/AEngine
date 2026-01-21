@@ -27,7 +27,8 @@ namespace AEngine {
         void SetParent(FSceneNode* parent) { m_parent = parent; m_dirty = true; }
 
         // Update matrices
-        void UpdateWorldMatrix();
+        // parentDirty indicates if the parent's world matrix has changed
+        void UpdateWorldMatrix(bool parentDirty = false);
         const glm::mat4& GetWorldMatrix() const { return m_worldMatrix; }
 
         const std::string& GetName() const { return m_name; }

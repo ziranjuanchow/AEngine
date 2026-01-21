@@ -12,6 +12,7 @@ namespace AEngine {
 
         virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) override;
         virtual void Clear(float r, float g, float b, float a) override;
+        virtual void SetDepthBias(float constant, float slope) override;
         
         virtual void SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) override;
         virtual void SetVertexBuffer(std::shared_ptr<IRHIBuffer> buffer) override;

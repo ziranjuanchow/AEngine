@@ -17,7 +17,8 @@ namespace AEngine {
     enum class ERHIPixelFormat {
         RGBA8_UNORM,
         RGBA16_FLOAT,
-        D24_S8
+        D24_S8,
+        Depth24 // Depth component only
     };
 
     enum class ERHIBufferUsage {

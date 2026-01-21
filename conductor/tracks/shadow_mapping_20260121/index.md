@@ -1,4 +1,4 @@
-# Track refactor_perf_20260121 Context
+# Track shadow_mapping_20260121 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

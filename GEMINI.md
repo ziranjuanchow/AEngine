@@ -28,3 +28,4 @@
 ## 5. Development Workflow
 - Follow the **Conductor** methodology.
 - Always run `.\build.bat` before submitting any task to verify that the compilation and unit tests (Catch2) pass.
+- **Documentation Requirement**: After completing each track (feature, bug fix, or major change), the AI must update or create relevant documentation in `docs/features/` describing the implementation. Ensure `docs/Index.md` is updated to reflect these changes.

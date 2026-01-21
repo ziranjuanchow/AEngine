@@ -1,0 +1,8 @@
+{
+  "track_id": "scene_editor_20260121",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-21T16:30:00Z",
+  "updated_at": "2026-01-21T16:30:00Z",
+  "description": "实现场景大纲与层级管理，支持多模型追加加载、树状结构显示、选中节点属性编辑及可见性控制。"
+}

@@ -21,8 +21,9 @@ AEngine 是一款专为游戏引擎开发者设计的高性能、高度模块化
 
 ## 4. 系统架构 (System Architecture)
 
-### 3.1 核心层 (Core)
-- **UEngine**：全局单例，管理所有子系统的生命周期。
+### 4.1 核心层 (Core)
+- **FApplication**：应用程序基类，封装了底层启动流程。开发者通过继承此类并实现 `OnInit`, `OnUpdate`, `OnImGuiRender` 等接口来构建应用。
+- **UEngine**：全局单例，负责管理所有子系统（Subsystems）的生命周期和注册。
 - **IEngineSubsystem**：所有核心模块（如窗口、渲染、输入）的基类接口。
 - **APluginManager**：负责动态加载 DLL 插件，支持热插拔架构。
 - **LogSystem**：基于 spdlog 的高性能异步日志系统。

@@ -14,6 +14,9 @@
     - 集成 `glslang`，运行时将 GLSL 源码编译为 SPIR-V 字节码。
     - **技术方案**：针对 OpenGL 4.6 环境，采用 `EShTargetOpenGL_450` 规则编译，允许在 SPIR-V 中使用独立的 Uniforms，从而简化从传统 GLSL 的迁移。
     - 支持 `#include` 预处理指令，方便 Shader 代码复用。
+- **性能优化**：
+    - **Shader 编译缓存**：实现了基于源码哈希的内存缓存，避免重复编译同一 Shader 源码。
+    - **RHI 状态追踪**：`OpenGLCommandBuffer` 会追踪当前绑定的 PSO、VAO 和 Buffers，消除冗余的 OpenGL API 调用开销。
 
 ### 2.2 渲染管线 (Render Graph)
 - **RenderPass**：将渲染逻辑封装为独立的 Pass。

@@ -5,7 +5,23 @@
 
 ## 2. 核心功能
 
-### 2.1 子系统管理 (Subsystem Management)
+### 2.1 应用程序框架 (Application Framework)
+引入了 `FApplication` 类作为引擎的入口点。
+- **职责**：管理 `UEngine` 初始化、窗口创建、主循环驱动以及清理。
+- **用户接口**：
+    - `OnInit()`: 用户自定义初始化逻辑。
+    - `OnUpdate(float deltaTime)`: 每一帧的渲染和逻辑更新。
+    - `OnImGuiRender()`: 用于绘制调试 UI 和编辑器窗口。
+
+### 2.2 文件选择对话框 (File Dialogs)
+集成了 `portable-file-dialogs` 库。
+- **功能**：提供原生的操作系统文件选择框，替代了手动输入路径。
+- **示例**：
+  ```cpp
+  auto selection = pfd::open_file("Select a Model", ".", { "3D Models", "*.obj *.fbx" }).result();
+  ```
+
+### 2.3 子系统管理 (Subsystem Management)
 引擎采用子系统架构来模块化核心功能。
 - **注册**：在 `UEngine::Init` 之前通过 `RegisterSubsystem` 注册。
 - **生命周期**：

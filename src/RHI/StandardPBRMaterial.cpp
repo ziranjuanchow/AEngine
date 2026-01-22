@@ -74,53 +74,58 @@ namespace AEngine {
     void FStandardPBRMaterial::Bind() {
         if (m_program) {
             glUseProgram(m_program);
-            
+            BindUniforms();
+        }
+    }
+
+    void FStandardPBRMaterial::BindUniforms() {
+            // Locations must match StandardPBR.vert/.frag layout(location=...) 不是
             glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(m_model));      // model
             glUniformMatrix4fv(1, 1, GL_FALSE, glm::value_ptr(m_view));       // view
-                        glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(m_projection)); // projection
-                        glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(m_lightSpaceMatrix)); // lightSpaceMatrix
-            
-                        glUniform3fv(20, 1, &m_albedo[0]); // albedo
-                        glUniform1f(21, m_metallic);       // metallic
-                        glUniform1f(22, m_roughness);      // roughness
-                        glUniform1f(23, m_ao);             // ao
-            
-                        glUniform3fv(24, 1, glm::value_ptr(m_lightPosition)); // lightPosition
-                        glUniform3fv(25, 1, glm::value_ptr(m_lightColor));    // lightColor
-                        glUniform3fv(26, 1, glm::value_ptr(m_camPos));        // camPos
-            
-                        // IBL Samplers
-                        glUniform1i(27, 0); // irradianceMap
-                        glUniform1i(28, 1); // prefilterMap
-                        glUniform1i(29, 2); // brdfLUT
-            
-                        // Material Textures
-                        if (m_albedoMap) {
-                            auto* glTex = static_cast<FOpenGLTexture*>(m_albedoMap.get());
-                            glActiveTexture(GL_TEXTURE3);
-                            glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
-                            glUniform1i(30, 3);
-                            glUniform1i(32, 1); // useAlbedoMap = true
-                        } else {
-                            glUniform1i(32, 0);
-                        }
-            
-                        if (m_normalMap) {
-                            auto* glTex = static_cast<FOpenGLTexture*>(m_normalMap.get());
-                            glActiveTexture(GL_TEXTURE4);
-                            glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
-                            glUniform1i(31, 4);
-                            glUniform1i(33, 1); // useNormalMap = true
-                        } else {
-                            glUniform1i(33, 0);
-                        }
-            
-                        if (m_shadowMap) {
-                            auto* glTex = static_cast<FOpenGLTexture*>(m_shadowMap.get());
-                            glActiveTexture(GL_TEXTURE5);
-                            glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
-                            glUniform1i(34, 5);
-                        }        }
+            glUniformMatrix4fv(2, 1, GL_FALSE, glm::value_ptr(m_projection)); // projection
+            glUniformMatrix4fv(3, 1, GL_FALSE, glm::value_ptr(m_lightSpaceMatrix)); // lightSpaceMatrix
+
+            glUniform3fv(20, 1, &m_albedo[0]); // albedo
+            glUniform1f(21, m_metallic);       // metallic
+            glUniform1f(22, m_roughness);      // roughness
+            glUniform1f(23, m_ao);             // ao
+
+            glUniform3fv(24, 1, glm::value_ptr(m_lightPosition)); // lightPosition
+            glUniform3fv(25, 1, glm::value_ptr(m_lightColor));    // lightColor
+            glUniform3fv(26, 1, glm::value_ptr(m_camPos));        // camPos
+
+            // IBL Samplers
+            glUniform1i(27, 0); // irradianceMap
+            glUniform1i(28, 1); // prefilterMap
+            glUniform1i(29, 2); // brdfLUT
+
+            // Material Textures
+            if (m_albedoMap) {
+                auto* glTex = static_cast<FOpenGLTexture*>(m_albedoMap.get());
+                glActiveTexture(GL_TEXTURE3);
+                glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
+                glUniform1i(30, 3);
+                glUniform1i(32, 1); // useAlbedoMap = true
+            } else {
+                glUniform1i(32, 0);
+            }
+
+            if (m_normalMap) {
+                auto* glTex = static_cast<FOpenGLTexture*>(m_normalMap.get());
+                glActiveTexture(GL_TEXTURE4);
+                glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
+                glUniform1i(31, 4);
+                glUniform1i(33, 1); // useNormalMap = true
+            } else {
+                glUniform1i(33, 0);
+            }
+
+            if (m_shadowMap) {
+                auto* glTex = static_cast<FOpenGLTexture*>(m_shadowMap.get());
+                glActiveTexture(GL_TEXTURE5);
+                glBindTexture(GL_TEXTURE_2D, glTex->GetHandle());
+                glUniform1i(34, 5);
+            }
     }
 
     void FStandardPBRMaterial::SetParameter(const std::string& name, const FMaterialParamValue& value) {

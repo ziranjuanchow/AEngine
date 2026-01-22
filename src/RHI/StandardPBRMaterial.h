@@ -11,8 +11,15 @@ namespace AEngine {
         virtual ~FStandardPBRMaterial();
 
         virtual void Bind() override;
+        // Binds parameters to the currently active program (must have compatible locations)
+        void BindUniforms();
         virtual void SetParameter(const std::string& name, const FMaterialParamValue& value) override;
         virtual const std::string& GetName() const override { return m_name; }
+
+        glm::vec3 GetAlbedo() const { return m_albedo; }
+        float GetMetallic() const { return m_metallic; }
+        float GetRoughness() const { return m_roughness; }
+        float GetAO() const { return m_ao; }
 
         void LoadShaders(const std::string& vertPath, const std::string& fragPath);
 

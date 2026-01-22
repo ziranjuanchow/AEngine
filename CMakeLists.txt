@@ -43,6 +43,7 @@ add_executable(AEngine
     src/RHI/StandardPBRMaterial.cpp
     src/RHI/ForwardLitPass.cpp
     src/RHI/ShadowPass.cpp
+    src/RHI/DeferredGeometryPass.cpp
     src/Core/AssetLoader.cpp
     src/RHI/IBLPreprocessor.cpp
 )
@@ -75,6 +76,7 @@ add_executable(AEngineTests
     tests/MaterialTests.cpp
     tests/VertexTests.cpp
     tests/ShadowTests.cpp
+    tests/RHITests.cpp
     src/Core/Log.cpp
     src/Core/Engine.cpp
     src/Core/PluginManager.cpp

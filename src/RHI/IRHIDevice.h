@@ -35,7 +35,7 @@ namespace AEngine {
         uint32_t Width;
         uint32_t Height;
         std::shared_ptr<IRHITexture> DepthAttachment;
-        // ColorAttachments can be added later
+        std::vector<std::shared_ptr<IRHITexture>> ColorAttachments;
     };
 
     /**

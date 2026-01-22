@@ -1,0 +1,8 @@
+{
+  "track_id": "deferred_rendering_20260122",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-01-22T10:00:00Z",
+  "updated_at": "2026-01-22T10:00:00Z",
+  "description": "实现延迟渲染管线，包括 G-Buffer 生成、基于光体积的延迟光照以及与前向渲染的混合集成。"
+}

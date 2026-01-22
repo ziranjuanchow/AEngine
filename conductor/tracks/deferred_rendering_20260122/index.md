@@ -1,4 +1,4 @@
-# Track scene_editor_20260121 Context
+# Track deferred_rendering_20260122 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

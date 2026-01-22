@@ -184,10 +184,20 @@ public:
         m_scene.clear();
         CollectRenderables(m_rootNode.get(), m_scene);
 
-        // Bind Shadow Map to PBR Material
-        // In a real engine, this would be handled by the Render Graph automatically
-        m_pbrMat->SetParameter("shadowMap", m_shadowPass->GetDepthMap());
-        m_pbrMat->SetParameter("lightSpaceMatrix", ctx.LightSpaceMatrix); // Forward Pass needs this too? Yes via context
+        // Bind Global Maps to ALL Materials
+        // In a real engine, RenderGraph or SceneRenderer handles this
+        for (auto& r : m_scene) {
+            if (auto mat = std::dynamic_pointer_cast<FStandardPBRMaterial>(r.Material)) {
+                mat->SetParameter("shadowMap", m_shadowPass->GetDepthMap());
+                // Assuming IBL maps are loaded? Wait, we haven't loaded IBL maps in main.cpp yet!
+                // We only implemented AssetLoader::LoadHDR but didn't call it.
+                // The Red Spheres work because... wait, do they?
+                // StandardPBR.frag: vec3 irradiance = texture(irradianceMap, N).rgb;
+                // If irradianceMap is not set, it uses unit 0.
+                // What is bound to unit 0? Nothing explicit.
+                // So Red Spheres might just be lucky or using black ambient.
+            }
+        }
 
         // Execute Render Graph
         m_cmdBuffer->Begin();
@@ -204,6 +214,64 @@ public:
         ImGui::Begin("Scene Hierarchy");
         if (m_rootNode) {
             DrawSceneNode(m_rootNode.get());
+        }
+        ImGui::End();
+
+        // Inspector
+        ImGui::Begin("Inspector");
+        if (m_selectedNode) {
+            ImGui::Text("Name: %s", m_selectedNode->GetName().c_str());
+            ImGui::Separator();
+
+            // Transform
+            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen)) {
+                glm::vec3 pos = m_selectedNode->GetPosition();
+                if (ImGui::DragFloat3("Position", &pos[0], 0.1f)) {
+                    m_selectedNode->SetPosition(pos);
+                }
+
+                glm::quat rot = m_selectedNode->GetRotation();
+                glm::vec3 euler = glm::degrees(glm::eulerAngles(rot));
+                if (ImGui::DragFloat3("Rotation", &euler[0], 0.1f)) {
+                    m_selectedNode->SetRotation(glm::quat(glm::radians(euler)));
+                }
+
+                glm::vec3 scale = m_selectedNode->GetScale();
+                if (ImGui::DragFloat3("Scale", &scale[0], 0.1f)) {
+                    m_selectedNode->SetScale(scale);
+                }
+            }
+
+            // Material
+            if (ImGui::CollapsingHeader("Material", ImGuiTreeNodeFlags_DefaultOpen)) {
+                auto& renderables = m_selectedNode->GetRenderablesMutable();
+                if (renderables.empty()) {
+                    ImGui::Text("No mesh data.");
+                } else {
+                    // For MVP, just edit the first material found or iterate
+                    for (size_t i = 0; i < renderables.size(); ++i) {
+                        auto mat = renderables[i].Material;
+                        if (mat) {
+                            ImGui::PushID((int)i);
+                            if (ImGui::TreeNode(mat->GetName().c_str())) {
+                                if (auto pbrMat = std::dynamic_pointer_cast<FStandardPBRMaterial>(mat)) {
+                                    float metallic = pbrMat->GetMetallic();
+                                    float roughness = pbrMat->GetRoughness();
+                                    glm::vec3 albedo = pbrMat->GetAlbedo();
+
+                                    if (ImGui::ColorEdit3("Albedo", &albedo[0])) pbrMat->SetParameter("albedo", albedo);
+                                    if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f)) pbrMat->SetParameter("metallic", metallic);
+                                    if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f)) pbrMat->SetParameter("roughness", roughness);
+                                }
+                                ImGui::TreePop();
+                            }
+                            ImGui::PopID();
+                        }
+                    }
+                }
+            }
+        } else {
+            ImGui::Text("No node selected.");
         }
         ImGui::End();
 
@@ -244,31 +312,6 @@ public:
             m_cameraPos = glm::vec3(0.0f, 0.0f, 10.0f);
             m_cameraYaw = -90.0f;
             m_cameraPitch = 0.0f;
-        }
-        ImGui::End();
-
-        ImGui::Begin("Material Editor");
-        static float metallic = 0.5f;
-        static float roughness = 0.5f;
-        
-        bool updateMat = false;
-        if (ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f)) updateMat = true;
-        if (ImGui::SliderFloat("Roughness", &roughness, 0.0f, 1.0f)) updateMat = true;
-        
-        if (updateMat) {
-            // Update default material
-            m_pbrMat->SetParameter("metallic", metallic);
-            m_pbrMat->SetParameter("roughness", roughness);
-
-            // Update loaded model materials
-            if (m_currentModel) {
-                for (auto& mesh : m_currentModel->Meshes) {
-                    if (mesh.Material) {
-                        mesh.Material->SetParameter("metallic", metallic);
-                        mesh.Material->SetParameter("roughness", roughness);
-                    }
-                }
-            }
         }
         ImGui::End();
 

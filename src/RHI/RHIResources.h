@@ -27,6 +27,7 @@ namespace AEngine {
         virtual void Bind() = 0;
         virtual void Unbind() = 0;
         virtual std::shared_ptr<IRHITexture> GetDepthAttachment() const = 0;
+        virtual std::shared_ptr<IRHITexture> GetColorAttachment(uint32_t index) const = 0;
     };
 
     class IRHIPipelineState : public IRHIResource {};

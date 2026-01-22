@@ -15,7 +15,7 @@ namespace AEngine {
     }
 
     std::shared_ptr<IRHIFramebuffer> FOpenGLDevice::CreateFramebuffer(const FFramebufferConfig& config) {
-        return std::make_shared<FOpenGLFramebuffer>(config.Width, config.Height, config.DepthAttachment);
+        return std::make_shared<FOpenGLFramebuffer>(config);
     }
 
     std::shared_ptr<IRHICommandBuffer> FOpenGLDevice::CreateCommandBuffer() {

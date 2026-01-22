@@ -1,6 +1,6 @@
 # Track 实施计划 - 延迟渲染管线
 
-## Phase 1: G-Buffer 基础设施
+## Phase 1: G-Buffer 基础设施 [checkpoint: 0951e7e]
 
 - [x] Task: 扩展 RHI 支持 MRT (多渲染目标)
     - [x] [TDD] 验证 Framebuffer 创建时附带多个 Color Attachments (tests/RHITests.cpp)
@@ -9,7 +9,7 @@
 - [x] Task: 实现 G-Buffer Pass
     - [x] 编写 `shaders/DeferredGeometry.vert/frag` (输出到 Location 0, 1, 2)
     - [x] 实现 `FDeferredGeometryPass`：配置 MRT Framebuffer 并渲染场景 (src/RHI/DeferredGeometryPass.h/cpp)
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: G-Buffer 基础设施' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: G-Buffer 基础设施' (Protocol in workflow.md)
 
 ## Phase 2: 延迟光照与光体积
 

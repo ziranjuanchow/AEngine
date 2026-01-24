@@ -22,6 +22,18 @@ namespace AEngine {
         return std::make_shared<FOpenGLCommandBuffer>();
     }
 
+    void FOpenGLDevice::BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, uint32_t width, uint32_t height) {
+        if (!source) return;
+        auto* glFBO = static_cast<FOpenGLFramebuffer*>(source.get());
+        
+        // Use direct state access or bind-to-blit
+        // FBO 0 is the default screen framebuffer
+        glBlitNamedFramebuffer(glFBO->GetHandle(), 0, 
+            0, 0, width, height, 
+            0, 0, width, height, 
+            GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+    }
+
     void FOpenGLDevice::Present() {
         // Swap buffers is handled by WindowSubsystem currently, but RHI could take it
     }

@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <string>
+#include <optional>
 #include "../RHI/RenderGraph.h"
 
 namespace AEngine {
@@ -14,10 +15,14 @@ namespace AEngine {
         FSceneNode(const std::string& name = "Node");
         ~FSceneNode() = default;
 
-        // Render Data
+        // Components
         void AddRenderable(const FRenderable& renderable) { m_renderables.push_back(renderable); }
         const std::vector<FRenderable>& GetRenderables() const { return m_renderables; }
-        std::vector<FRenderable>& GetRenderablesMutable() { return m_renderables; } // For editing
+        std::vector<FRenderable>& GetRenderablesMutable() { return m_renderables; } 
+
+        void SetPointLight(const FPointLight& light) { m_pointLight = light; }
+        std::optional<FPointLight>& GetPointLight() { return m_pointLight; }
+        bool HasPointLight() const { return m_pointLight.has_value(); }
 
         // TRS
         void SetPosition(const glm::vec3& pos) { m_localPosition = pos; m_dirty = true; }
@@ -51,6 +56,7 @@ namespace AEngine {
         std::string m_name;
         bool m_isVisible = true;
         std::vector<FRenderable> m_renderables;
+        std::optional<FPointLight> m_pointLight;
         
         glm::vec3 m_localPosition{ 0.0f };
         glm::quat m_localRotation{ 1.0f, 0.0f, 0.0f, 0.0f };

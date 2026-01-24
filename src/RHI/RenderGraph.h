@@ -17,15 +17,24 @@ namespace AEngine {
         uint32_t IndexCount;
     };
 
+    struct FPointLight {
+        glm::vec3 Position;
+        glm::vec3 Color;
+        float Intensity;
+        float Radius;
+    };
+
     struct FRenderContext {
         glm::mat4 ViewMatrix;
         glm::mat4 ProjectionMatrix;
         glm::vec3 CameraPosition;
         
         // Lighting
-        glm::vec3 LightPosition;
+        glm::vec3 LightPosition; // Directional light position/direction
         glm::vec3 LightColor;
         glm::mat4 LightSpaceMatrix;
+
+        std::vector<FPointLight> PointLights;
     };
 
     class FRenderPass {

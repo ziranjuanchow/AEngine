@@ -22,6 +22,30 @@ namespace AEngine {
         }
     }
 
+    void FOpenGLCommandBuffer::SetBlendState(bool enabled) {
+        if (enabled) {
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_ONE); // Additive
+        } else {
+            glDisable(GL_BLEND);
+        }
+    }
+
+    void FOpenGLCommandBuffer::SetDepthTest(bool enabled, bool writeEnabled, uint32_t func) {
+        if (enabled) glEnable(GL_DEPTH_TEST); else glDisable(GL_DEPTH_TEST);
+        glDepthMask(writeEnabled ? GL_TRUE : GL_FALSE);
+        glDepthFunc(func);
+    }
+
+    void FOpenGLCommandBuffer::SetCullMode(uint32_t mode) {
+        if (mode == 0) {
+            glDisable(GL_CULL_FACE);
+        } else {
+            glEnable(GL_CULL_FACE);
+            glCullFace(mode);
+        }
+    }
+
     void FOpenGLCommandBuffer::SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) {
         if (pso) {
             auto* glPSO = static_cast<FOpenGLPipelineState*>(pso.get());

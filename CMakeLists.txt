@@ -26,6 +26,15 @@ find_package(glslang CONFIG REQUIRED)
 find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_glsl CONFIG REQUIRED)
 
+# Clang-Tidy Integration
+find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+if(CLANG_TIDY_EXE)
+    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}")
+    set(CMAKE_CXX_CLANG_TIDY "${CLANG_TIDY_EXE};-checks=-*,bugprone-*,performance-*,modernize-*,readability-*,-modernize-use-trailing-return-type")
+else()
+    message(WARNING "clang-tidy not found!")
+endif()
+
 add_executable(AEngine 
     main.cpp
     src/Core/Log.cpp
@@ -44,6 +53,7 @@ add_executable(AEngine
     src/RHI/ForwardLitPass.cpp
     src/RHI/ShadowPass.cpp
     src/RHI/DeferredGeometryPass.cpp
+    src/RHI/DeferredLightingPass.cpp
     src/Core/AssetLoader.cpp
     src/RHI/IBLPreprocessor.cpp
 )

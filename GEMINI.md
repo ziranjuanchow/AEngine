@@ -13,6 +13,7 @@
   - `A` for Managers (e.g., `APluginManager`).
 - **C++ Standard**: C++20.
 - **Error Handling**: Use `tl::expected` (aliased as `AEngine::expected` in `src/Core/Engine.h`). Avoid using C++ exceptions.
+- **Static Analysis**: All C++ code must pass `clang-tidy` checks. The configuration is integrated into `CMakeLists.txt` using `bugprone-*`, `performance-*`, `modernize-*`, and `readability-*` checks.
 
 ## 3. Architecture Overview
 - **RHI (Rendering Hardware Interface)**: An abstraction layer over OpenGL 4.5+ (currently). Uses `glad` as the OpenGL loader.

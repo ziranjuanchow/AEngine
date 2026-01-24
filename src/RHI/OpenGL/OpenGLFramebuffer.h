@@ -19,6 +19,8 @@ namespace AEngine {
             return nullptr;
         }
 
+        GLuint GetHandle() const { return m_handle; }
+
     private:
         GLuint m_handle = 0;
         uint32_t m_width = 0;

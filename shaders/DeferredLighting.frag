@@ -112,8 +112,8 @@ void main()
     vec3 color = (kD * albedo / PI + specular) * radiance * NdotL;
 
     // Output color (Additive blending will sum this)
-    FragColor = vec4(color, 1.0);
+    // FragColor = vec4(color, 1.0);
     
     // DEBUG: Visualization
-    // FragColor = vec4(albedo, 1.0); // Show Albedo
+    FragColor = vec4(vec3(depth), 1.0); // Show Depth
 }

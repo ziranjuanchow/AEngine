@@ -51,8 +51,8 @@ namespace AEngine {
         return std::make_shared<FOpenGLPipelineState>(program);
     }
 
-    FDeferredLightingPass::FDeferredLightingPass(std::shared_ptr<IRHIFramebuffer> gBuffer, std::shared_ptr<IRHIBuffer> sphereVB, std::shared_ptr<IRHIBuffer> sphereIB, uint32_t sphereIndexCount)
-        : m_gBuffer(gBuffer), m_sphereVB(sphereVB), m_sphereIB(sphereIB), m_sphereIndexCount(sphereIndexCount) {
+    FDeferredLightingPass::FDeferredLightingPass(std::shared_ptr<IRHIFramebuffer> gBuffer, std::shared_ptr<IRHIBuffer> sphereVB, std::shared_ptr<IRHIBuffer> sphereIB, uint32_t sphereIndexCount, uint32_t width, uint32_t height)
+        : m_gBuffer(gBuffer), m_sphereVB(sphereVB), m_sphereIB(sphereIB), m_sphereIndexCount(sphereIndexCount), m_width(width), m_height(height) {
         m_pipelineState = CreateLightingPSO();
     }
 
@@ -61,13 +61,18 @@ namespace AEngine {
     void FDeferredLightingPass::Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) {
         if (!m_gBuffer || !m_pipelineState) return;
 
+        // Ensure Viewport matches G-Buffer size
+        cmdBuffer.SetViewport(0, 0, m_width, m_height);
+
         // Note: We render to the screen (default FBO assumed to be bound before pass if not using specific RT)
-        // For MVP, we'll assume the caller (RenderGraph) handles target binding.
         
         cmdBuffer.SetBlendState(true);
-        // Debug: Disable Depth Test and Culling to force draw light volumes
-        cmdBuffer.SetDepthTest(false, false, GL_ALWAYS); 
-        cmdBuffer.SetCullMode(0); // No culling
+        // Disable Depth Test (We have no depth buffer bound to avoid feedback loop)
+        // We rely on Shader distance check for culling logic.
+        cmdBuffer.SetDepthTest(false, false, GL_ALWAYS);
+        
+        // Render BACK faces so we can see the volume when inside it
+        cmdBuffer.SetCullMode(GL_FRONT); 
 
         cmdBuffer.SetPipelineState(m_pipelineState);
         auto* glPSO = static_cast<FOpenGLPipelineState*>(m_pipelineState.get());
@@ -116,6 +121,11 @@ namespace AEngine {
         }
 
         // Cleanup
+        // Unbind G-Buffer textures to avoid feedback loop in subsequent passes (e.g. Forward Pass using Depth)
+        glActiveTexture(GL_TEXTURE0); glBindTexture(GL_TEXTURE_2D, 0);
+        glActiveTexture(GL_TEXTURE1); glBindTexture(GL_TEXTURE_2D, 0);
+        glActiveTexture(GL_TEXTURE2); glBindTexture(GL_TEXTURE_2D, 0);
+
         cmdBuffer.SetBlendState(false);
         cmdBuffer.SetDepthTest(true, true, GL_LEQUAL);
         cmdBuffer.SetCullMode(GL_BACK);

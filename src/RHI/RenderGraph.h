@@ -46,14 +46,14 @@ namespace AEngine {
 
     class FRenderGraph {
     public:
-        void AddPass(std::unique_ptr<FRenderPass> pass) {
-            m_passes.push_back(std::move(pass));
-        }
-
-        void Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) {
-            for (auto& pass : m_passes) {
-                pass->Execute(cmdBuffer, context, renderables);
-            }
+        void AddPass(std::unique_ptr<FRenderPass> pass) { m_passes.push_back(std::move(pass)); }
+        void Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables);
+        
+        // Exposed for manual control
+        std::vector<FRenderPass*> GetPasses() {
+            std::vector<FRenderPass*> rawPasses;
+            for(auto& p : m_passes) rawPasses.push_back(p.get());
+            return rawPasses;
         }
 
     private:

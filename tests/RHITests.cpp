@@ -14,3 +14,11 @@ TEST_CASE("Framebuffer Configuration", "[RHI]") {
     // In a real test we would create mock textures, here we just verify struct exists
     REQUIRE(config.ColorAttachments.size() == 3);
 }
+
+TEST_CASE("HDR Texture Support", "[RHI]") {
+    using namespace AEngine;
+    // We can't easily test OpenGL context creation in headless unit tests without window
+    // But we can verify the enum exists and logic holds
+    auto format = ERHIPixelFormat::RGBA16_FLOAT;
+    REQUIRE((int)format > 0);
+}

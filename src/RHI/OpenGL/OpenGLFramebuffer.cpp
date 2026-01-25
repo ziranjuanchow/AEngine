@@ -26,7 +26,11 @@ namespace AEngine {
 
         if (m_depthAttachment) {
             auto* glDepth = static_cast<FOpenGLTexture*>(m_depthAttachment.get());
-            glNamedFramebufferTexture(m_handle, GL_DEPTH_ATTACHMENT, glDepth->GetHandle(), 0);
+            GLenum attachment = GL_DEPTH_ATTACHMENT;
+            if (glDepth->GetFormat() == ERHIPixelFormat::D24_S8) {
+                attachment = GL_DEPTH_STENCIL_ATTACHMENT;
+            }
+            glNamedFramebufferTexture(m_handle, attachment, glDepth->GetHandle(), 0);
         }
 
         GLenum status = glCheckNamedFramebufferStatus(m_handle, GL_FRAMEBUFFER);

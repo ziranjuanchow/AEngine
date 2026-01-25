@@ -7,7 +7,7 @@ namespace AEngine {
 
     class FDeferredLightingPass : public FRenderPass {
     public:
-        FDeferredLightingPass(std::shared_ptr<IRHIFramebuffer> gBuffer, std::shared_ptr<IRHIBuffer> sphereVB, std::shared_ptr<IRHIBuffer> sphereIB, uint32_t sphereIndexCount);
+        FDeferredLightingPass(std::shared_ptr<IRHIFramebuffer> gBuffer, std::shared_ptr<IRHIBuffer> sphereVB, std::shared_ptr<IRHIBuffer> sphereIB, uint32_t sphereIndexCount, uint32_t width, uint32_t height);
         virtual ~FDeferredLightingPass();
 
         virtual void Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) override;
@@ -20,6 +20,8 @@ namespace AEngine {
         std::shared_ptr<IRHIBuffer> m_sphereVB;
         std::shared_ptr<IRHIBuffer> m_sphereIB;
         uint32_t m_sphereIndexCount;
+        uint32_t m_width;
+        uint32_t m_height;
     };
 
 }

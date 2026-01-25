@@ -11,6 +11,7 @@
 #include "RHI/ShadowPass.h"
 #include "RHI/DeferredGeometryPass.h"
 #include "RHI/DeferredLightingPass.h"
+#include "RHI/PostProcessPass.h"
 #include "RHI/StandardPBRMaterial.h"
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
@@ -22,14 +23,12 @@ using namespace AEngine;
 
 class SandboxApp : public FApplication {
 public:
-    SandboxApp() : FApplication({ "AEngine Sandbox", 1600, 900 }) {
-        // NFD is handled by pfd (portable-file-dialogs) which doesn't need explicit Init in simple cases
+    SandboxApp() : FApplication({ .Name = "AEngine Sandbox", .Width = 1600, .Height = 900 }) {
     }
 
     virtual void OnInit() override {
         AE_CORE_INFO("SandboxApp Init");
 
-        // RHI & Pipeline Setup
         m_device = std::make_shared<FOpenGLDevice>();
         m_renderGraph = std::make_unique<FRenderGraph>();
         
@@ -53,8 +52,26 @@ public:
         gBufferConfig.ColorAttachments.push_back(m_device->CreateTexture(1600, 900, ERHIPixelFormat::RGBA16_FLOAT)); // Normal
         gBufferConfig.ColorAttachments.push_back(m_device->CreateTexture(1600, 900, ERHIPixelFormat::RGBA8_UNORM)); // Emissive
         
-        auto gBuffer = m_device->CreateFramebuffer(gBufferConfig);
-        m_renderGraph->AddPass(std::make_unique<FDeferredGeometryPass>(gBuffer));
+        m_gBuffer = m_device->CreateFramebuffer(gBufferConfig);
+        m_renderGraph->AddPass(std::make_unique<FDeferredGeometryPass>(m_gBuffer));
+
+        // HDR Pass Setup
+        auto hdrColorTex = m_device->CreateTexture(1600, 900, ERHIPixelFormat::RGBA16_FLOAT);
+
+        // 1. Lighting FBO: No Depth Attachment
+        FFramebufferConfig hdrLightingConfig;
+        hdrLightingConfig.Width = 1600;
+        hdrLightingConfig.Height = 900;
+        hdrLightingConfig.ColorAttachments.push_back(hdrColorTex);
+        m_hdrLightingFBO = m_device->CreateFramebuffer(hdrLightingConfig);
+
+        // 2. Forward FBO: Shared Depth + Shared Color
+        FFramebufferConfig hdrForwardConfig;
+        hdrForwardConfig.Width = 1600;
+        hdrForwardConfig.Height = 900;
+        hdrForwardConfig.DepthAttachment = gBufferConfig.DepthAttachment;
+        hdrForwardConfig.ColorAttachments.push_back(hdrColorTex);
+        m_hdrForwardFBO = m_device->CreateFramebuffer(hdrForwardConfig);
 
         // Geometry Setup (Fallback)
         uint32_t sphereIndexCount;
@@ -66,14 +83,17 @@ public:
         FGeometryUtils::CreateQuad(*m_device, quadVB, quadIB, quadIndexCount);
 
         // Lighting Pass needs sphere mesh
-        m_renderGraph->AddPass(std::make_unique<FDeferredLightingPass>(gBuffer, m_sphereVB, m_sphereIB, m_sphereIndexCount));
+        m_renderGraph->AddPass(std::make_unique<FDeferredLightingPass>(m_gBuffer, m_sphereVB, m_sphereIB, m_sphereIndexCount, 1600, 900));
 
         m_renderGraph->AddPass(std::make_unique<FForwardLitPass>()); 
+
+        // Post Process Setup
+        m_postProcessPass = std::make_unique<FPostProcessPass>(hdrColorTex);
 
         // Material Setup
         m_pbrMat = std::make_shared<FStandardPBRMaterial>("StandardPBR");
         m_pbrMat->LoadShaders("shaders/StandardPBR.vert", "shaders/StandardPBR.frag");
-        m_pbrMat->SetParameter("albedo", glm::vec3(0.5f, 0.0f, 0.0f)); // Red
+        m_pbrMat->SetParameter("albedo", glm::vec3(0.5f, 0.0f, 0.0f));
         m_pbrMat->SetParameter("ao", 1.0f);
 
         // Initial Scene Setup
@@ -94,13 +114,11 @@ public:
         for (int i = 0; i < 5; ++i) {
             auto sphereNode = std::make_unique<FSceneNode>("Sphere_" + std::to_string(i));
             sphereNode->SetPosition(glm::vec3(i * 2.5f - 5.0f, 0.0f, 0.0f));
-            
             FRenderable r;
             r.VertexBuffer = m_sphereVB;
             r.IndexBuffer = m_sphereIB;
             r.IndexCount = m_sphereIndexCount;
             r.Material = m_pbrMat;
-            
             sphereNode->AddRenderable(r);
             m_rootNode->AddChild(std::move(sphereNode));
         }
@@ -123,13 +141,13 @@ public:
             auto lightNode = std::make_unique<FSceneNode>("PointLight_" + std::to_string(i));
             lightNode->SetPosition(light.Position);
             lightNode->SetPointLight(light);
+            lightNode->SetRenderPassType(ERenderPassType::Forward);
             
-            // Optional: Add a visual mesh for the light (Debug)
             FRenderable debugSphere;
             debugSphere.VertexBuffer = m_sphereVB;
             debugSphere.IndexBuffer = m_sphereIB;
             debugSphere.IndexCount = m_sphereIndexCount;
-            debugSphere.Material = m_pbrMat; // Use PBR mat for now, just to see it
+            debugSphere.Material = m_pbrMat;
             debugSphere.WorldMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.2f)); 
             lightNode->AddRenderable(debugSphere);
 
@@ -188,7 +206,8 @@ public:
 
         FRenderContext ctx;
         ctx.ViewMatrix = glm::lookAt(m_cameraPos, m_cameraPos + cameraFront, cameraUp);
-        ctx.ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 100.0f);
+        // Force 16:9 Aspect Ratio to match FBO
+        ctx.ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1600.0f / 900.0f, 0.1f, 100.0f);
         ctx.CameraPosition = m_cameraPos;
         ctx.LightPosition = glm::vec3(10.0f, 10.0f, 10.0f);
         ctx.LightColor = glm::vec3(150.0f, 150.0f, 150.0f);
@@ -197,51 +216,82 @@ public:
         glm::mat4 lightProjection = glm::ortho(-20.0f, 20.0f, -20.0f, 20.0f, near_plane, far_plane);
         glm::mat4 lightView = glm::lookAt(ctx.LightPosition, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         ctx.LightSpaceMatrix = lightProjection * lightView;
-        // Update Scene
+        
         m_rootNode->UpdateWorldMatrix();
-        m_scene.clear();
+        m_deferredList.clear();
+        m_forwardList.clear();
         m_pointLights.clear();
-        CollectRenderables(m_rootNode.get(), m_scene, m_pointLights);
+        CollectRenderables(m_rootNode.get());
         ctx.PointLights = m_pointLights;
 
-        for (auto& r : m_scene) {
+        // Bind Shadows
+        for (auto& r : m_deferredList) {
+            if (auto mat = std::dynamic_pointer_cast<FStandardPBRMaterial>(r.Material)) {
+                mat->SetParameter("shadowMap", m_shadowPass->GetDepthMap());
+            }
+        }
+        for (auto& r : m_forwardList) {
             if (auto mat = std::dynamic_pointer_cast<FStandardPBRMaterial>(r.Material)) {
                 mat->SetParameter("shadowMap", m_shadowPass->GetDepthMap());
             }
         }
 
-        // Execute Render Graph
         m_cmdBuffer->Begin();
         
-        // Manual Pass Order Control
-        m_renderGraph->Execute(*m_cmdBuffer, ctx, m_scene);
+        std::vector<FRenderPass*> passes = m_renderGraph->GetPasses();
         
-        // Final Sync: Blit depth from G-Buffer to screen so Forward pass can use it
-        m_device->BlitFramebuffer(m_gBuffer, w, h);
+        // 1. Shadow
+        passes[0]->Execute(*m_cmdBuffer, ctx, m_deferredList);
+
+        // 2. Geometry
+        passes[1]->Execute(*m_cmdBuffer, ctx, m_deferredList);
+
+        // 3. Lighting (Write to HDR Color, No Depth Test)
+        m_hdrLightingFBO->Bind();
+        m_cmdBuffer->Clear(0.0f, 0.0f, 0.0f, 1.0f, false);
+        passes[2]->Execute(*m_cmdBuffer, ctx, m_deferredList);
+        m_hdrLightingFBO->Unbind();
+
+        // 4. Forward (Write to HDR Color, Use Shared Depth)
+        m_hdrForwardFBO->Bind();
+        m_cmdBuffer->SetViewport(0, 0, 1600, 900); // Ensure Viewport matches FBO
+        passes[3]->Execute(*m_cmdBuffer, ctx, m_forwardList); 
+        m_hdrForwardFBO->Unbind();
+
+        // 5. Post Process -> Screen
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glViewport(0, 0, w, h);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        m_postProcessPass->SetExposure(1.0f);
+        m_postProcessPass->Execute(*m_cmdBuffer, ctx, m_deferredList);
         
         m_cmdBuffer->End();
-
     }
 
-    void CollectRenderables(FSceneNode* node, std::vector<FRenderable>& outList, std::vector<FPointLight>& outLights) {
+    void CollectRenderables(FSceneNode* node) {
         if (!node->IsVisible()) return;
 
         // Add node's renderables
         for (auto renderable : node->GetRenderables()) {
             renderable.WorldMatrix = node->GetWorldMatrix();
-            outList.push_back(renderable);
+            if (node->GetRenderPassType() == ERenderPassType::Deferred) {
+                m_deferredList.push_back(renderable);
+            } else {
+                m_forwardList.push_back(renderable);
+            }
         }
 
         // Add node's light (Sync position with node)
         if (node->HasPointLight()) {
             FPointLight light = node->GetPointLight().value();
             light.Position = glm::vec3(node->GetWorldMatrix()[3]);
-            outLights.push_back(light);
+            m_pointLights.push_back(light);
         }
 
         // Recurse
         for (const auto& child : node->GetChildren()) {
-            CollectRenderables(child.get(), outList, outLights);
+            CollectRenderables(child.get());
         }
     }
 
@@ -339,13 +389,17 @@ private:
     std::unique_ptr<FRenderGraph> m_renderGraph;
     FShadowPass* m_shadowPass = nullptr;
     std::shared_ptr<IRHIFramebuffer> m_gBuffer;
+    std::shared_ptr<IRHIFramebuffer> m_hdrLightingFBO;
+    std::shared_ptr<IRHIFramebuffer> m_hdrForwardFBO;
+    std::unique_ptr<FPostProcessPass> m_postProcessPass;
     std::shared_ptr<IRHICommandBuffer> m_cmdBuffer;
     std::shared_ptr<FStandardPBRMaterial> m_pbrMat;
     std::shared_ptr<IRHIBuffer> m_sphereVB, m_sphereIB;
     uint32_t m_sphereIndexCount = 0;
     std::unique_ptr<FSceneNode> m_rootNode;
     FSceneNode* m_selectedNode = nullptr;
-    std::vector<FRenderable> m_scene;
+    std::vector<FRenderable> m_deferredList;
+    std::vector<FRenderable> m_forwardList;
     std::vector<FPointLight> m_pointLights;
     std::vector<std::function<void()>> m_deferredActions;
 

@@ -8,9 +8,11 @@ namespace AEngine {
         glViewport(x, y, width, height);
     }
 
-    void FOpenGLCommandBuffer::Clear(float r, float g, float b, float a) {
+    void FOpenGLCommandBuffer::Clear(float r, float g, float b, float a, bool clearDepth) {
         glClearColor(r, g, b, a);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+        GLbitfield mask = GL_COLOR_BUFFER_BIT;
+        if (clearDepth) mask |= GL_DEPTH_BUFFER_BIT;
+        glClear(mask);
     }
 
     void FOpenGLCommandBuffer::SetDepthBias(float constant, float slope) {

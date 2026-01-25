@@ -20,7 +20,7 @@ namespace AEngine {
         virtual void End() = 0;
 
         virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
-        virtual void Clear(float r, float g, float b, float a) = 0;
+        virtual void Clear(float r, float g, float b, float a, bool clearDepth = true) = 0;
         virtual void SetDepthBias(float constant, float slope) = 0;
         virtual void SetBlendState(bool enabled) = 0;
         virtual void SetDepthTest(bool enabled, bool writeEnabled, uint32_t func = 0x0203) = 0; // GL_LEQUAL = 0x0203

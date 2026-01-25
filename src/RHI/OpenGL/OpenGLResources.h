@@ -25,9 +25,13 @@ namespace AEngine {
         FOpenGLTexture(uint32_t width, uint32_t height, ERHIPixelFormat format, const void* data);
         virtual ~FOpenGLTexture();
 
+        virtual void Bind(uint32_t slot) override;
         virtual uint32_t GetWidth() const override { return m_width; }
         virtual uint32_t GetHeight() const override { return m_height; }
+        virtual ERHIPixelFormat GetFormat() const override { return m_format; }
+
         GLuint GetHandle() const { return m_handle; }
+
 
     private:
         GLuint m_handle = 0;

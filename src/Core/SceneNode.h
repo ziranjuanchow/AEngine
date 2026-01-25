@@ -10,12 +10,20 @@
 
 namespace AEngine {
 
+    enum class ERenderPassType {
+        Deferred,
+        Forward
+    };
+
     class FSceneNode {
     public:
         FSceneNode(const std::string& name = "Node");
         ~FSceneNode() = default;
 
         // Components
+        void SetRenderPassType(ERenderPassType type) { m_passType = type; }
+        ERenderPassType GetRenderPassType() const { return m_passType; }
+
         void AddRenderable(const FRenderable& renderable) { m_renderables.push_back(renderable); }
         const std::vector<FRenderable>& GetRenderables() const { return m_renderables; }
         std::vector<FRenderable>& GetRenderablesMutable() { return m_renderables; } 
@@ -55,6 +63,7 @@ namespace AEngine {
     private:
         std::string m_name;
         bool m_isVisible = true;
+        ERenderPassType m_passType = ERenderPassType::Deferred;
         std::vector<FRenderable> m_renderables;
         std::optional<FPointLight> m_pointLight;
         

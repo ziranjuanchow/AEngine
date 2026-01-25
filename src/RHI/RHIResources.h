@@ -18,8 +18,10 @@ namespace AEngine {
 
     class IRHITexture : public IRHIResource {
     public:
+        virtual void Bind(uint32_t slot) = 0;
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;
+        virtual ERHIPixelFormat GetFormat() const = 0;
     };
 
     class IRHIFramebuffer : public IRHIResource {

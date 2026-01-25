@@ -7,12 +7,9 @@
 #include "Core/GeometryUtils.h"
 #include "Core/AssetLoader.h"
 #include "RHI/OpenGL/OpenGLDevice.h"
-#include "RHI/ForwardLitPass.h"
-#include "RHI/ShadowPass.h"
-#include "RHI/DeferredGeometryPass.h"
-#include "RHI/DeferredLightingPass.h"
-#include "RHI/PostProcessPass.h"
+#include "RHI/SceneRenderer.h"
 #include "RHI/StandardPBRMaterial.h"
+#include "RHI/PostProcessPass.h"
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <glm/gtc/matrix_transform.hpp>
@@ -30,50 +27,12 @@ public:
         AE_CORE_INFO("SandboxApp Init");
 
         m_device = std::make_shared<FOpenGLDevice>();
-        m_renderGraph = std::make_unique<FRenderGraph>();
         
-        // Shadow Pass Setup
-        FFramebufferConfig shadowConfig;
-        shadowConfig.Width = 2048;
-        shadowConfig.Height = 2048;
-        shadowConfig.DepthAttachment = m_device->CreateTexture(2048, 2048, ERHIPixelFormat::Depth24);
-        auto shadowFBO = m_device->CreateFramebuffer(shadowConfig);
-        
-        auto shadowPass = std::make_unique<FShadowPass>(shadowFBO);
-        m_shadowPass = shadowPass.get(); 
-        m_renderGraph->AddPass(std::move(shadowPass));
+        // 1. Initialize Renderer
+        m_renderer = std::make_unique<FSceneRenderer>(m_device);
+        m_renderer->Init(1600, 900);
 
-        // Deferred Pass Setup
-        FFramebufferConfig gBufferConfig;
-        gBufferConfig.Width = 1600; 
-        gBufferConfig.Height = 900;
-        gBufferConfig.DepthAttachment = m_device->CreateTexture(1600, 900, ERHIPixelFormat::D24_S8);
-        gBufferConfig.ColorAttachments.push_back(m_device->CreateTexture(1600, 900, ERHIPixelFormat::RGBA8_UNORM)); // Albedo
-        gBufferConfig.ColorAttachments.push_back(m_device->CreateTexture(1600, 900, ERHIPixelFormat::RGBA16_FLOAT)); // Normal
-        gBufferConfig.ColorAttachments.push_back(m_device->CreateTexture(1600, 900, ERHIPixelFormat::RGBA8_UNORM)); // Emissive
-        
-        m_gBuffer = m_device->CreateFramebuffer(gBufferConfig);
-        m_renderGraph->AddPass(std::make_unique<FDeferredGeometryPass>(m_gBuffer));
-
-        // HDR Pass Setup
-        auto hdrColorTex = m_device->CreateTexture(1600, 900, ERHIPixelFormat::RGBA16_FLOAT);
-
-        // 1. Lighting FBO: No Depth Attachment
-        FFramebufferConfig hdrLightingConfig;
-        hdrLightingConfig.Width = 1600;
-        hdrLightingConfig.Height = 900;
-        hdrLightingConfig.ColorAttachments.push_back(hdrColorTex);
-        m_hdrLightingFBO = m_device->CreateFramebuffer(hdrLightingConfig);
-
-        // 2. Forward FBO: Shared Depth + Shared Color
-        FFramebufferConfig hdrForwardConfig;
-        hdrForwardConfig.Width = 1600;
-        hdrForwardConfig.Height = 900;
-        hdrForwardConfig.DepthAttachment = gBufferConfig.DepthAttachment;
-        hdrForwardConfig.ColorAttachments.push_back(hdrColorTex);
-        m_hdrForwardFBO = m_device->CreateFramebuffer(hdrForwardConfig);
-
-        // Geometry Setup (Fallback)
+        // 2. Load Resources (Fallback)
         uint32_t sphereIndexCount;
         FGeometryUtils::CreateSphere(*m_device, m_sphereVB, m_sphereIB, sphereIndexCount);
         m_sphereIndexCount = sphereIndexCount;
@@ -82,21 +41,13 @@ public:
         uint32_t quadIndexCount;
         FGeometryUtils::CreateQuad(*m_device, quadVB, quadIB, quadIndexCount);
 
-        // Lighting Pass needs sphere mesh
-        m_renderGraph->AddPass(std::make_unique<FDeferredLightingPass>(m_gBuffer, m_sphereVB, m_sphereIB, m_sphereIndexCount, 1600, 900));
-
-        m_renderGraph->AddPass(std::make_unique<FForwardLitPass>()); 
-
-        // Post Process Setup
-        m_postProcessPass = std::make_unique<FPostProcessPass>(hdrColorTex);
-
-        // Material Setup
+        // 3. Material Setup
         m_pbrMat = std::make_shared<FStandardPBRMaterial>("StandardPBR");
         m_pbrMat->LoadShaders("shaders/StandardPBR.vert", "shaders/StandardPBR.frag");
         m_pbrMat->SetParameter("albedo", glm::vec3(0.5f, 0.0f, 0.0f));
         m_pbrMat->SetParameter("ao", 1.0f);
 
-        // Initial Scene Setup
+        // 4. Initial Scene Setup
         m_rootNode = std::make_unique<FSceneNode>("SceneRoot");
 
         // Ground
@@ -111,6 +62,7 @@ public:
         }
         m_rootNode->AddChild(std::move(groundNode));
 
+        // Initial Spheres
         for (int i = 0; i < 5; ++i) {
             auto sphereNode = std::make_unique<FSceneNode>("Sphere_" + std::to_string(i));
             sphereNode->SetPosition(glm::vec3(i * 2.5f - 5.0f, 0.0f, 0.0f));
@@ -123,9 +75,7 @@ public:
             m_rootNode->AddChild(std::move(sphereNode));
         }
 
-        m_cmdBuffer = m_device->CreateCommandBuffer();
-
-        // Point Lights Setup
+        // 5. Point Lights Setup
         auto lightRoot = std::make_unique<FSceneNode>("Lights");
         for (int i = 0; i < 50; ++i) {
             FPointLight light;
@@ -161,6 +111,14 @@ public:
         m_deferredActions.clear();
 
         GLFWwindow* window = m_window->GetNativeWindow();
+        int w, h;
+        glfwGetFramebufferSize(window, &w, &h);
+        if (w <= 0 || h <= 0) return;
+
+        // Resize renderer if needed
+        m_renderer->Resize(w, h);
+
+        // Camera Control
         float speed = 5.0f * deltaTime;
         if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) speed *= 2.0f;
 
@@ -195,19 +153,12 @@ public:
             m_firstMouse = true;
         }
 
-        int w, h;
-        glfwGetFramebufferSize(window, &w, &h);
-        if (w <= 0 || h <= 0) return;
-
-        glViewport(0, 0, w, h);
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
-
+        // Prepare Context
         FRenderContext ctx;
         ctx.ViewMatrix = glm::lookAt(m_cameraPos, m_cameraPos + cameraFront, cameraUp);
-        // Force 16:9 Aspect Ratio to match FBO
-        ctx.ProjectionMatrix = glm::perspective(glm::radians(45.0f), 1600.0f / 900.0f, 0.1f, 100.0f);
+        // Force Renderer internal aspect ratio? No, let's allow renderer to decide based on width/height.
+        // Actually SceneRenderer uses width/height for Projection too.
+        ctx.ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 100.0f);
         ctx.CameraPosition = m_cameraPos;
         ctx.LightPosition = glm::vec3(10.0f, 10.0f, 10.0f);
         ctx.LightColor = glm::vec3(150.0f, 150.0f, 150.0f);
@@ -217,6 +168,7 @@ public:
         glm::mat4 lightView = glm::lookAt(ctx.LightPosition, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         ctx.LightSpaceMatrix = lightProjection * lightView;
         
+        // Scene Collection
         m_rootNode->UpdateWorldMatrix();
         m_deferredList.clear();
         m_forwardList.clear();
@@ -224,75 +176,23 @@ public:
         CollectRenderables(m_rootNode.get());
         ctx.PointLights = m_pointLights;
 
-        // Bind Shadows
-        for (auto& r : m_deferredList) {
-            if (auto mat = std::dynamic_pointer_cast<FStandardPBRMaterial>(r.Material)) {
-                mat->SetParameter("shadowMap", m_shadowPass->GetDepthMap());
-            }
-        }
-        for (auto& r : m_forwardList) {
-            if (auto mat = std::dynamic_pointer_cast<FStandardPBRMaterial>(r.Material)) {
-                mat->SetParameter("shadowMap", m_shadowPass->GetDepthMap());
-            }
-        }
-
-        m_cmdBuffer->Begin();
-        
-        std::vector<FRenderPass*> passes = m_renderGraph->GetPasses();
-        
-        // 1. Shadow
-        passes[0]->Execute(*m_cmdBuffer, ctx, m_deferredList);
-
-        // 2. Geometry
-        passes[1]->Execute(*m_cmdBuffer, ctx, m_deferredList);
-
-        // 3. Lighting (Write to HDR Color, No Depth Test)
-        m_hdrLightingFBO->Bind();
-        m_cmdBuffer->Clear(0.0f, 0.0f, 0.0f, 1.0f, false);
-        passes[2]->Execute(*m_cmdBuffer, ctx, m_deferredList);
-        m_hdrLightingFBO->Unbind();
-
-        // 4. Forward (Write to HDR Color, Use Shared Depth)
-        m_hdrForwardFBO->Bind();
-        m_cmdBuffer->SetViewport(0, 0, 1600, 900); // Ensure Viewport matches FBO
-        passes[3]->Execute(*m_cmdBuffer, ctx, m_forwardList); 
-        m_hdrForwardFBO->Unbind();
-
-        // 5. Post Process -> Screen
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, w, h);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        m_postProcessPass->SetExposure(1.0f);
-        m_postProcessPass->Execute(*m_cmdBuffer, ctx, m_deferredList);
-        
-        m_cmdBuffer->End();
+        // Render!
+        m_renderer->Render(ctx, m_deferredList, m_forwardList);
     }
 
     void CollectRenderables(FSceneNode* node) {
         if (!node->IsVisible()) return;
-
-        // Add node's renderables
         for (auto renderable : node->GetRenderables()) {
             renderable.WorldMatrix = node->GetWorldMatrix();
-            if (node->GetRenderPassType() == ERenderPassType::Deferred) {
-                m_deferredList.push_back(renderable);
-            } else {
-                m_forwardList.push_back(renderable);
-            }
+            if (node->GetRenderPassType() == ERenderPassType::Deferred) m_deferredList.push_back(renderable);
+            else m_forwardList.push_back(renderable);
         }
-
-        // Add node's light (Sync position with node)
         if (node->HasPointLight()) {
             FPointLight light = node->GetPointLight().value();
             light.Position = glm::vec3(node->GetWorldMatrix()[3]);
             m_pointLights.push_back(light);
         }
-
-        // Recurse
-        for (const auto& child : node->GetChildren()) {
-            CollectRenderables(child.get());
-        }
+        for (const auto& child : node->GetChildren()) CollectRenderables(child.get());
     }
 
     virtual void OnImGuiRender() override {
@@ -386,16 +286,13 @@ public:
 
 private:
     std::shared_ptr<FOpenGLDevice> m_device;
-    std::unique_ptr<FRenderGraph> m_renderGraph;
-    FShadowPass* m_shadowPass = nullptr;
-    std::shared_ptr<IRHIFramebuffer> m_gBuffer;
-    std::shared_ptr<IRHIFramebuffer> m_hdrLightingFBO;
-    std::shared_ptr<IRHIFramebuffer> m_hdrForwardFBO;
-    std::unique_ptr<FPostProcessPass> m_postProcessPass;
-    std::shared_ptr<IRHICommandBuffer> m_cmdBuffer;
+    std::unique_ptr<FSceneRenderer> m_renderer;
+    
     std::shared_ptr<FStandardPBRMaterial> m_pbrMat;
     std::shared_ptr<IRHIBuffer> m_sphereVB, m_sphereIB;
     uint32_t m_sphereIndexCount = 0;
+    
+    // Scene
     std::unique_ptr<FSceneNode> m_rootNode;
     FSceneNode* m_selectedNode = nullptr;
     std::vector<FRenderable> m_deferredList;

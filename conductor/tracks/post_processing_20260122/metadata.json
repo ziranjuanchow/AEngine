@@ -1,8 +1,0 @@
-{
-  "track_id": "post_processing_20260122",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-22T14:30:00Z",
-  "updated_at": "2026-01-22T14:30:00Z",
-  "description": "实现后期处理管线，包括 HDR 基础设施、ACES Tone Mapping、Bloom 效果及编辑器参数控制。"
-}

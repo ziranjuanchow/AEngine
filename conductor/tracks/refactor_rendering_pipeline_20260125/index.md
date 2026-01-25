@@ -1,4 +1,4 @@
-# Track post_processing_20260122 Context
+# Track refactor_rendering_pipeline_20260125 Context
 
 - [Specification](./spec.md)
 - [Implementation Plan](./plan.md)

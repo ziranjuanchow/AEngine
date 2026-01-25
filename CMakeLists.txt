@@ -56,6 +56,7 @@ add_executable(AEngine
     src/RHI/DeferredGeometryPass.cpp
     src/RHI/DeferredLightingPass.cpp
     src/RHI/PostProcessPass.cpp
+    src/RHI/SceneRenderer.cpp
     src/Core/AssetLoader.cpp
     src/RHI/IBLPreprocessor.cpp
 )

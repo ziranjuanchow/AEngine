@@ -13,6 +13,8 @@ namespace AEngine {
         virtual void Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) override;
         virtual std::string GetName() const override { return "DeferredLightingPass"; }
 
+        void SetResolution(uint32_t width, uint32_t height) { m_width = width; m_height = height; }
+
     private:
         std::shared_ptr<IRHIFramebuffer> m_gBuffer;
         std::shared_ptr<IRHIPipelineState> m_pipelineState;

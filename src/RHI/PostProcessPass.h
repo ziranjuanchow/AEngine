@@ -14,6 +14,7 @@ namespace AEngine {
         virtual std::string GetName() const override { return "PostProcessPass"; }
 
         void SetExposure(float exposure) { m_exposure = exposure; }
+        void SetInputTexture(std::shared_ptr<IRHITexture> input) { m_inputTexture = input; }
 
     private:
         std::shared_ptr<IRHITexture> m_inputTexture;

@@ -20,8 +20,16 @@ namespace AEngine {
         glDeleteBuffers(1, &m_handle);
     }
 
+    void FOpenGLBuffer::Bind() {
+        glBindBuffer(m_glType, m_handle);
+    }
+
+    void FOpenGLBuffer::Unbind() {
+        glBindBuffer(m_glType, 0);
+    }
+
     FOpenGLTexture::FOpenGLTexture(uint32_t width, uint32_t height, ERHIPixelFormat format, const void* data)
-        : m_width(width), m_height(height) {
+        : m_width(width), m_height(height), m_format(format) {
         
         glCreateTextures(GL_TEXTURE_2D, 1, &m_handle);
         
@@ -32,6 +40,8 @@ namespace AEngine {
         switch (format) {
             case ERHIPixelFormat::RGBA16_FLOAT: 
                 internalFormat = GL_RGBA16F; type = GL_HALF_FLOAT; break;
+            case ERHIPixelFormat::RGBA8_UNORM:
+                internalFormat = GL_RGBA8; type = GL_UNSIGNED_BYTE; break;
             case ERHIPixelFormat::D24_S8: 
                 internalFormat = GL_DEPTH24_STENCIL8; 
                 externalFormat = GL_DEPTH_STENCIL;
@@ -46,7 +56,6 @@ namespace AEngine {
 
         glTextureStorage2D(m_handle, 1, internalFormat, width, height);
         
-        // Setup shadow parameters for Depth textures
         if (format == ERHIPixelFormat::Depth24) {
             glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -54,10 +63,13 @@ namespace AEngine {
             glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
             float borderColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
             glTextureParameterfv(m_handle, GL_TEXTURE_BORDER_COLOR, borderColor);
-            
-            // Enable hardware PCF comparison
             glTextureParameteri(m_handle, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
             glTextureParameteri(m_handle, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+        } else {
+            glTextureParameteri(m_handle, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTextureParameteri(m_handle, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTextureParameteri(m_handle, GL_TEXTURE_WRAP_S, GL_REPEAT);
+            glTextureParameteri(m_handle, GL_TEXTURE_WRAP_T, GL_REPEAT);
         }
 
         if (data) {
@@ -67,6 +79,26 @@ namespace AEngine {
 
     FOpenGLTexture::~FOpenGLTexture() {
         glDeleteTextures(1, &m_handle);
+    }
+
+    void FOpenGLTexture::Bind(uint32_t slot) {
+        glBindTextureUnit(slot, m_handle);
+    }
+
+    FOpenGLPipelineState::FOpenGLPipelineState(GLuint program)
+        : m_program(program) {
+    }
+
+    FOpenGLPipelineState::~FOpenGLPipelineState() {
+        glDeleteProgram(m_program);
+    }
+
+    void FOpenGLPipelineState::Bind() {
+        glUseProgram(m_program);
+    }
+
+    void FOpenGLPipelineState::Unbind() {
+        glUseProgram(0);
     }
 
 }

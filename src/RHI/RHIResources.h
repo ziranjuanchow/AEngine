@@ -13,6 +13,8 @@ namespace AEngine {
 
     class IRHIBuffer : public IRHIResource {
     public:
+        virtual void Bind() = 0;
+        virtual void Unbind() = 0;
         virtual uint32_t GetSize() const = 0;
     };
 
@@ -32,6 +34,10 @@ namespace AEngine {
         virtual std::shared_ptr<IRHITexture> GetColorAttachment(uint32_t index) const = 0;
     };
 
-    class IRHIPipelineState : public IRHIResource {};
+    class IRHIPipelineState : public IRHIResource {
+    public:
+        virtual void Bind() = 0;
+        virtual void Unbind() = 0;
+    };
 
 }

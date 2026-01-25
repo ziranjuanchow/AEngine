@@ -1,28 +1,32 @@
 #pragma once
 
-#include <glad/glad.h>
 #include "../RHIResources.h"
+#include <glad/glad.h>
 
 namespace AEngine {
 
     class FOpenGLBuffer : public IRHIBuffer {
     public:
+        // Use RHI types in constructor to match .cpp implementation
         FOpenGLBuffer(ERHIBufferType type, uint32_t size, ERHIBufferUsage usage, const void* data);
         virtual ~FOpenGLBuffer();
 
+        virtual void Bind() override;
+        virtual void Unbind() override;
         virtual uint32_t GetSize() const override { return m_size; }
+
         GLuint GetHandle() const { return m_handle; }
-        GLenum GetGLType() const { return m_glType; }
 
     private:
         GLuint m_handle = 0;
-        uint32_t m_size = 0;
-        GLenum m_glType = 0;
+        GLenum m_target;
+        GLenum m_glType; // Added member
+        uint32_t m_size; // Added member
     };
 
     class FOpenGLTexture : public IRHITexture {
     public:
-        FOpenGLTexture(uint32_t width, uint32_t height, ERHIPixelFormat format, const void* data);
+        FOpenGLTexture(uint32_t width, uint32_t height, ERHIPixelFormat format, const void* data = nullptr);
         virtual ~FOpenGLTexture();
 
         virtual void Bind(uint32_t slot) override;
@@ -32,18 +36,21 @@ namespace AEngine {
 
         GLuint GetHandle() const { return m_handle; }
 
-
     private:
         GLuint m_handle = 0;
-        uint32_t m_width = 0;
-        uint32_t m_height = 0;
+        uint32_t m_width;
+        uint32_t m_height;
+        ERHIPixelFormat m_format;
     };
 
     class FOpenGLPipelineState : public IRHIPipelineState {
     public:
-        // OpenGL doesn't have a direct PSO, but we can store shader programs here
-        FOpenGLPipelineState(GLuint program) : m_program(program) {}
-        virtual ~FOpenGLPipelineState() { glDeleteProgram(m_program); }
+        FOpenGLPipelineState(GLuint program);
+        virtual ~FOpenGLPipelineState();
+
+        virtual void Bind() override;
+        virtual void Unbind() override;
+
         GLuint GetProgram() const { return m_program; }
 
     private:

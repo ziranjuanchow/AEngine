@@ -58,6 +58,12 @@ namespace AEngine {
 
     FDeferredLightingPass::~FDeferredLightingPass() {}
 
+    /// @brief Performs deferred lighting calculation using light volumes.
+    /// Technique:
+    /// 1. Render sphere geometry representing the light volume.
+    /// 2. Bind G-Buffer textures (Albedo, Normal, Depth) as inputs.
+    /// 3. Calculate PBR lighting per-fragment inside the sphere volume.
+    /// 4. Use Additive Blending (ONE, ONE) to accumulate light contributions.
     void FDeferredLightingPass::Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) {
         if (!m_gBuffer || !m_pipelineState) return;
 
@@ -72,6 +78,7 @@ namespace AEngine {
         cmdBuffer.SetDepthTest(false, false, GL_ALWAYS);
         
         // Render BACK faces so we can see the volume when inside it
+        // TODO: Refactor to RHI (This direct GL enum usage leaks abstraction)
         cmdBuffer.SetCullMode(GL_FRONT); 
 
         cmdBuffer.SetPipelineState(m_pipelineState);
@@ -79,6 +86,7 @@ namespace AEngine {
         GLuint program = glPSO->GetProgram();
 
         // 1. Bind G-Buffer Textures
+        // TODO: Refactor binding logic to RHI ResourceBindings
         auto bindGBuffer = [&](int loc, int unit, std::shared_ptr<IRHITexture> tex) {
             auto* glTex = static_cast<FOpenGLTexture*>(tex.get());
             glActiveTexture(GL_TEXTURE0 + unit);
@@ -91,6 +99,7 @@ namespace AEngine {
         bindGBuffer(22, 2, m_gBuffer->GetDepthAttachment());  // Depth
 
         // 2. Global Uniforms
+        // TODO: Move to Uniform Buffer Object (UBO)
         glm::mat4 invVP = glm::inverse(context.ProjectionMatrix * context.ViewMatrix);
         glUniformMatrix4fv(23, 1, GL_FALSE, glm::value_ptr(invVP));
         glUniform3fv(24, 1, glm::value_ptr(context.CameraPosition));

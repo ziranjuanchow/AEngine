@@ -21,6 +21,15 @@ namespace AEngine {
         Shutdown();
     }
 
+    /// @brief Initializes the renderer, including FBOs and the Render Graph.
+    /// @param width Viewport width
+    /// @param height Viewport height
+    /// The initialization pipeline currently hardcodes the following passes:
+    /// 1. Shadow Pass: Generates shadow maps from directional lights.
+    /// 2. G-Buffer Pass: Deferred geometry pass (MRT: Albedo, Normal, Emissive).
+    /// 3. Lighting Pass: Deferred lighting using light volumes (spheres).
+    /// 4. Forward Pass: For transparent objects, skybox, or debug lines (reuses Depth/Color).
+    /// 5. Post Process Pass: Tone mapping and gamma correction.
     void FSceneRenderer::Init(uint32_t width, uint32_t height) {
         m_width = width;
         m_height = height;
@@ -43,6 +52,8 @@ namespace AEngine {
         m_renderGraph->AddPass(std::move(geomPassPtr));
 
         // 3. Deferred Lighting Pass
+        // We use a unit sphere for light volume rendering.
+        // The sphere is scaled by the light radius in the shader.
         std::shared_ptr<IRHIBuffer> sphereVB, sphereIB;
         uint32_t sphereIndexCount;
         FGeometryUtils::CreateSphere(*m_device, sphereVB, sphereIB, sphereIndexCount);
@@ -64,6 +75,12 @@ namespace AEngine {
         m_renderGraph->AddPass(std::move(postPassPtr));
     }
 
+    /// @brief Creates Framebuffers for G-Buffer and HDR Lighting.
+    /// G-Buffer Layout:
+    /// - Attachment 0: Albedo (RGB) + Specular (A) [RGBA8_UNORM]
+    /// - Attachment 1: Normal (RGB) [RGBA16_FLOAT for precision]
+    /// - Attachment 2: Emissive / Other data [RGBA8_UNORM]
+    /// - Depth: D24_S8 (Shared with Forward Pass)
     void FSceneRenderer::CreateFBOs(uint32_t width, uint32_t height) {
         // G-Buffer Setup
         FFramebufferConfig gBufferConfig;
@@ -112,12 +129,15 @@ namespace AEngine {
 
     static void UnbindAllTextures() {
         for (int i = 0; i < 8; ++i) {
+            // TODO: Refactor to RHI (m_cmdBuffer->ResetTextureUnits())
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, 0);
         }
     }
 
+    /// @brief Resets common OpenGL render states to a known default (Depth On, Backface Culling).
     static void ResetRenderState() {
+        // TODO: Refactor to RHI (m_cmdBuffer->SetRenderState(...))
         glDisable(GL_BLEND);
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
@@ -127,11 +147,20 @@ namespace AEngine {
         glFrontFace(GL_CCW);
     }
 
+    /// @brief Executes the full rendering pipeline.
+    /// Pipeline Flow:
+    /// 1. Shadow Pass: Render depth from light perspective.
+    /// 2. G-Buffer Pass: Fill Albedo, Normal, Depth.
+    /// 3. Lighting Pass: Accumulate lighting into HDR buffer using G-Buffer.
+    /// 4. Forward Pass: Draw transparent/debug objects on top of HDR buffer (using G-Buffer depth).
+    /// 5. Post Process: Tone map HDR -> LDR (Screen).
     void FSceneRenderer::Render(const FRenderContext& context, 
                                const std::vector<FRenderable>& deferredList,
                                const std::vector<FRenderable>& forwardList) {
         
         // 1. Prepare Materials (Shadow Map Binding)
+        // This iterates through all renderables to bind the shadow map texture.
+        // TODO: This should be handled by a global uniform buffer or resource binding system.
         for (auto& r : deferredList) {
             if (auto mat = std::dynamic_pointer_cast<FStandardPBRMaterial>(r.Material)) {
                 mat->SetParameter("shadowMap", m_shadowPass->GetDepthMap());
@@ -147,13 +176,17 @@ namespace AEngine {
 
         std::vector<FRenderPass*> passes = m_renderGraph->GetPasses();
 
+        // ---------------------------------------------------------
         // Pass 0: Shadow (Location 0 in Graph)
+        // ---------------------------------------------------------
         // Shadow Pass manages its own state (Cull Front), but we should ensure a clean start
         ResetRenderState();
         passes[0]->Execute(*m_cmdBuffer, context, deferredList);
         UnbindAllTextures();
 
+        // ---------------------------------------------------------
         // Pass 1: Geometry (Location 1 in Graph)
+        // ---------------------------------------------------------
         m_gBuffer->Bind();
         m_cmdBuffer->SetViewport(0, 0, m_width, m_height);
         m_cmdBuffer->Clear(0.0f, 0.0f, 0.0f, 1.0f); 
@@ -162,16 +195,21 @@ namespace AEngine {
         m_gBuffer->Unbind();
         UnbindAllTextures();
 
+        // ---------------------------------------------------------
         // Pass 2: Lighting (Location 2 in Graph)
+        // ---------------------------------------------------------
         m_hdrLightingFBO->Bind();
         m_cmdBuffer->SetViewport(0, 0, m_width, m_height);
         m_cmdBuffer->Clear(0.0f, 0.0f, 0.0f, 1.0f, false); // Clear Color Only
-        // Lighting pass sets its own state (Blend, No Depth, Cull Front)
+        // Lighting pass sets its own state (Blend, No Depth, Cull Front) within Execute()
         passes[2]->Execute(*m_cmdBuffer, context, deferredList);
         m_hdrLightingFBO->Unbind();
         UnbindAllTextures();
 
+        // ---------------------------------------------------------
         // Pass 3: Forward (Location 3 in Graph)
+        // ---------------------------------------------------------
+        // Note: We bind the HDR FBO again, which shares Depth with G-Buffer.
         m_hdrForwardFBO->Bind();
         m_cmdBuffer->SetViewport(0, 0, m_width, m_height);
         ResetRenderState(); // Reset for Forward Pass (Depth Test On, Cull Back)
@@ -180,7 +218,10 @@ namespace AEngine {
         m_hdrForwardFBO->Unbind();
         UnbindAllTextures();
 
+        // ---------------------------------------------------------
         // Final: Post Process -> Screen
+        // ---------------------------------------------------------
+        // TODO: Refactor to RHI (m_cmdBuffer->BindBackBuffer())
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, m_width, m_height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

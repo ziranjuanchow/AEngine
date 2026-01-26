@@ -18,6 +18,8 @@ Detailed documentation for implemented features:
   - Directional Shadows, PCF Soft Shadows, Depth Bias.
 - [05 - Scene Editor](./features/05_Scene_Editor.md)
   - Hierarchy, Inspector, Transform Editing.
+- [06 - Deferred Rendering Pipeline](./features/06_Deferred_Pipeline.md)
+  - Hybrid Pipeline, G-Buffer Layout, Light Volume Rendering.
 
 ## Other Resources
 - [Build Instructions](../README.md) (See root README)

@@ -61,6 +61,11 @@ namespace AEngine {
 
     FDeferredGeometryPass::~FDeferredGeometryPass() {}
 
+    /// @brief Renders opaque geometry into the G-Buffer.
+    /// This pass outputs to 3 Color Attachments (MRT):
+    /// - Location 0: Albedo (RGB) + Specular (A)
+    /// - Location 1: Normal (World Space, RGB)
+    /// - Location 2: Emissive (RGB) + Metallic/Roughness (Packed?) - currently only Emissive logic is explicit.
     void FDeferredGeometryPass::Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) {
         if (!m_gBuffer || !m_pipelineState) return;
 

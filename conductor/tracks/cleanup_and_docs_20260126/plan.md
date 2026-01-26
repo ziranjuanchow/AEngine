@@ -23,3 +23,14 @@
 - [x] Task: Draft Refactoring Plan
     - Create `refactor_proposal.md` in the track folder.
     - Detail the steps to abstract `glDrawBuffers`, `glBlendFunc`, and `glBlitFramebuffer` into `IRHICommandBuffer`.
+
+## Phase 4: Comprehensive Annotation [Completed]
+
+- [x] Task: Annotate RHI Interfaces
+    - `IRHIDevice.h`, `RHIResources.h`, `RHIDefinitions.h`.
+- [x] Task: Annotate Shaders
+    - `DeferredGeometry.vert/frag` (Explain MRT layout).
+    - `DeferredLighting.vert/frag` (Explain PBR math and Light Volume logic).
+    - Fix debug output in `DeferredLighting.frag`.
+- [x] Task: Annotate Core
+    - `UEngine` (Singleton and Subsystem management).

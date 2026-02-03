@@ -5,12 +5,12 @@
 #include "Kernel/ModuleManager/ModuleManager.h"
 #include "Engine.Window/WindowModule.h"
 #include "Engine.Renderer/RenderModule.h"
-#include "Core/SceneNode.h"
+#include "Engine.Scene/SceneNode.h"
 #include "Core/PluginManager.h"
-#include "Core/GeometryUtils.h"
-#include "Core/AssetLoader.h"
-#include "RHI/StandardPBRMaterial.h"
-#include "RHI/PostProcessPass.h"
+#include "Engine.Scene/GeometryUtils.h"
+#include "Engine.Asset/AssetLoader.h"
+#include "Engine.Renderer/StandardPBRMaterial.h"
+#include "Engine.Renderer/PostProcessPass.h"
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <glm/gtc/matrix_transform.hpp>

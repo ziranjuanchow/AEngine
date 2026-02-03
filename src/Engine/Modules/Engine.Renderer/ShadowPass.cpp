@@ -1,8 +1,8 @@
 #include "ShadowPass.h"
 #include <glad/glad.h>
 #include "Kernel/Core/Log.h"
-#include "OpenGL/OpenGLResources.h"
-#include "Core/ShaderCompiler.h"
+#include "Engine/Plugins/RHI.OpenGL/OpenGLResources.h"
+#include "Engine.RHI/ShaderCompiler.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <fstream>

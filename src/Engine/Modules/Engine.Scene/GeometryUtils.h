@@ -1,9 +1,9 @@
 #pragma once
 
 #include <vector>
-#include <glm/glm.hpp>
-#include "../RHI/IRHIDevice.h"
-#include "../RHI/RHIDefinitions.h"
+#include <memory>
+#include "Engine.RHI/RHIDefinitions.h"
+#include "Engine.RHI/IRHIDevice.h"
 
 namespace AEngine {
 

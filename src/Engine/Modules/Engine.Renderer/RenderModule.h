@@ -1,7 +1,7 @@
 #pragma once
 #include "Kernel/Core/Module.h"
-#include "RHI/IRHIDevice.h"
-#include "RHI/SceneRenderer.h"
+#include "Engine.RHI/IRHIDevice.h"
+#include "SceneRenderer.h"
 #include <memory>
 #include <vector>
 

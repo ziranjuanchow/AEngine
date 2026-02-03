@@ -1,5 +1,5 @@
 #include <catch2/catch_all.hpp>
-#include "../src/Core/SceneNode.h"
+#include "Engine.Scene/SceneNode.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 TEST_CASE("SceneNode TRS and Hierarchy", "[Scene]") {

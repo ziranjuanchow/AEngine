@@ -1,8 +1,9 @@
 #include "AssetLoader.h"
 #include "Kernel/Core/Log.h"
-#include "Core/GeometryUtils.h"
-#include "../RHI/OpenGL/OpenGLResources.h"
-#include "../RHI/StandardPBRMaterial.h"
+#include "Engine.Scene/GeometryUtils.h"
+#include "Engine.RHI/RHIDefinitions.h"
+#include "Engine/Plugins/RHI.OpenGL/OpenGLResources.h"
+#include "Engine.Renderer/StandardPBRMaterial.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>

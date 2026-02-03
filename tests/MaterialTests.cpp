@@ -1,5 +1,5 @@
 #include <catch2/catch_all.hpp>
-#include "../src/RHI/MaterialInstance.h"
+#include "Engine.RHI/MaterialInstance.h"
 
 TEST_CASE("Material System Interface", "[Material]") {
     using namespace AEngine;

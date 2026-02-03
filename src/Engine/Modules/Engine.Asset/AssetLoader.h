@@ -2,11 +2,11 @@
 
 #include <string>
 #include <memory>
-#include <vector>
-#include "../RHI/IRHIDevice.h"
-#include "../RHI/RHIDefinitions.h"
-#include "../RHI/IMaterial.h"
-#include "../RHI/RenderGraph.h"
+#include "Engine.Scene/SceneNode.h"
+#include "Engine.RHI/IRHIDevice.h"
+#include "Engine.RHI/RHIDefinitions.h"
+#include "Engine.RHI/IMaterial.h"
+#include "Engine.RHI/RenderGraph.h"
 
 namespace AEngine {
 

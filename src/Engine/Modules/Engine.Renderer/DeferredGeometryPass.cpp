@@ -1,8 +1,8 @@
 #include "DeferredGeometryPass.h"
-#include "../Core/ShaderCompiler.h"
+#include "Engine.RHI/ShaderCompiler.h"
 #include "Kernel/Core/Log.h"
 #include "StandardPBRMaterial.h"
-#include "OpenGL/OpenGLResources.h"
+#include "Engine/Plugins/RHI.OpenGL/OpenGLResources.h"
 #include <glad/glad.h>
 #include <fstream>
 #include <sstream>

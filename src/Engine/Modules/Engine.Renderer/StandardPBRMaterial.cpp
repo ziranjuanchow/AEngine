@@ -1,7 +1,7 @@
 #include "StandardPBRMaterial.h"
-#include "../Core/ShaderCompiler.h"
+#include "Engine.RHI/ShaderCompiler.h"
 #include "Kernel/Core/Log.h"
-#include "OpenGL/OpenGLResources.h"
+#include "Engine/Plugins/RHI.OpenGL/OpenGLResources.h"
 #include <fstream>
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>

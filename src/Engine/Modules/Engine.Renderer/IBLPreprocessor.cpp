@@ -1,8 +1,8 @@
 #include "IBLPreprocessor.h"
 #include "Kernel/Core/Log.h"
-#include "Core/GeometryUtils.h"
+#include "Engine.Scene/GeometryUtils.h"
+#include "Engine/Plugins/RHI.OpenGL/OpenGLResources.h"
 
-#include "OpenGL/OpenGLResources.h"
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>
 

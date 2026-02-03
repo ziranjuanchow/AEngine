@@ -6,7 +6,7 @@
 #include "PostProcessPass.h"
 #include "StandardPBRMaterial.h"
 #include "Kernel/Core/Log.h"
-#include "../Core/GeometryUtils.h"
+#include "Engine.Scene/GeometryUtils.h"
 #include <glad/glad.h>
 
 namespace AEngine {

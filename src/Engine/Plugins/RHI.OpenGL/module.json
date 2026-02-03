@@ -1,0 +1,6 @@
+{
+  "name": "RHI.OpenGL",
+  "type": "EnginePlugin",
+  "phase": "Default",
+  "dependencies": ["Engine.RHI"]
+}

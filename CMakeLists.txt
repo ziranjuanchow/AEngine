@@ -58,22 +58,22 @@ target_include_directories(AEngineKernel PUBLIC src/Kernel src)
 add_library(AEngineRuntime STATIC
     src/Engine/Modules/Engine.Window/WindowModule.cpp
     src/Engine/Modules/Engine.Renderer/RenderModule.cpp
-    src/RHI/SceneRenderer.cpp
-    src/RHI/ForwardLitPass.cpp
-    src/RHI/ShadowPass.cpp
-    src/RHI/DeferredGeometryPass.cpp
-    src/RHI/DeferredLightingPass.cpp
-    src/RHI/PostProcessPass.cpp
-    src/RHI/StandardPBRMaterial.cpp
-    src/RHI/IBLPreprocessor.cpp
-    src/RHI/OpenGL/OpenGLResources.cpp
-    src/RHI/OpenGL/OpenGLCommandBuffer.cpp
-    src/RHI/OpenGL/OpenGLDevice.cpp
-    src/RHI/OpenGL/OpenGLFramebuffer.cpp
-    src/Core/SceneNode.cpp
-    src/Core/GeometryUtils.cpp
-    src/Core/ShaderCompiler.cpp
-    src/Core/AssetLoader.cpp
+    src/Engine/Modules/Engine.Renderer/SceneRenderer.cpp
+    src/Engine/Modules/Engine.Renderer/ForwardLitPass.cpp
+    src/Engine/Modules/Engine.Renderer/ShadowPass.cpp
+    src/Engine/Modules/Engine.Renderer/DeferredGeometryPass.cpp
+    src/Engine/Modules/Engine.Renderer/DeferredLightingPass.cpp
+    src/Engine/Modules/Engine.Renderer/PostProcessPass.cpp
+    src/Engine/Modules/Engine.Renderer/StandardPBRMaterial.cpp
+    src/Engine/Modules/Engine.Renderer/IBLPreprocessor.cpp
+    src/Engine/Plugins/RHI.OpenGL/OpenGLResources.cpp
+    src/Engine/Plugins/RHI.OpenGL/OpenGLCommandBuffer.cpp
+    src/Engine/Plugins/RHI.OpenGL/OpenGLDevice.cpp
+    src/Engine/Plugins/RHI.OpenGL/OpenGLFramebuffer.cpp
+    src/Engine/Modules/Engine.Scene/SceneNode.cpp
+    src/Engine/Modules/Engine.Scene/GeometryUtils.cpp
+    src/Engine/Modules/Engine.RHI/ShaderCompiler.cpp
+    src/Engine/Modules/Engine.Asset/AssetLoader.cpp
 )
 target_link_libraries(AEngineRuntime PUBLIC 
     AEngineKernel
@@ -92,6 +92,10 @@ target_include_directories(AEngineRuntime PUBLIC
     src 
     src/Engine/Modules 
     src/Engine/Modules/Engine.Renderer
+    src/Engine/Modules/Engine.RHI
+    src/Engine/Modules/Engine.Scene
+    src/Engine/Modules/Engine.Asset
+    src/Engine/Plugins/RHI.OpenGL
 )
 
 add_executable(AEngine 
@@ -103,7 +107,15 @@ target_link_libraries(AEngine PRIVATE
     AEngineKernel
     RTTR::Core
 )
-target_include_directories(AEngine PRIVATE src src/Engine/Modules src/Engine/Modules/Engine.Renderer)
+target_include_directories(AEngine PRIVATE 
+    src 
+    src/Engine/Modules 
+    src/Engine/Modules/Engine.Renderer
+    src/Engine/Modules/Engine.RHI
+    src/Engine/Modules/Engine.Scene
+    src/Engine/Modules/Engine.Asset
+    src/Engine/Plugins/RHI.OpenGL
+)
 
 enable_testing()
 add_executable(AEngineTests 
@@ -123,7 +135,15 @@ target_link_libraries(AEngineTests PRIVATE
     Catch2::Catch2WithMain
 )
 
-target_include_directories(AEngineTests PRIVATE src src/Engine/Modules src/Engine/Modules/Engine.Renderer)
+target_include_directories(AEngineTests PRIVATE 
+    src 
+    src/Engine/Modules 
+    src/Engine/Modules/Engine.Renderer
+    src/Engine/Modules/Engine.RHI
+    src/Engine/Modules/Engine.Scene
+    src/Engine/Modules/Engine.Asset
+    src/Engine/Plugins/RHI.OpenGL
+)
 add_test(NAME LogTests COMMAND AEngineTests)
 add_test(NAME EngineTests COMMAND AEngineTests)
 add_test(NAME PluginTests COMMAND AEngineTests)

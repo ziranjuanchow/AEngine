@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
-#include "../src/RHI/IRHIDevice.h"
-#include <vector>
+#include "Engine.RHI/IRHIDevice.h"
+#include "Engine/Plugins/RHI.OpenGL/OpenGLDevice.h"
 
 TEST_CASE("Framebuffer Configuration", "[RHI]") {
     using namespace AEngine;

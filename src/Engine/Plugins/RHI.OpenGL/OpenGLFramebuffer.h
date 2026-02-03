@@ -1,6 +1,5 @@
 #pragma once
-
-#include "../IRHIDevice.h" // For FFramebufferConfig
+#include "Engine.RHI/IRHIDevice.h"
 #include <glad/glad.h>
 #include <vector>
 

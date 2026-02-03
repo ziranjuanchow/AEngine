@@ -1,6 +1,6 @@
 #include "PostProcessPass.h"
 #include "Kernel/Core/Log.h"
-#include "OpenGL/OpenGLResources.h"
+#include "Engine/Plugins/RHI.OpenGL/OpenGLResources.h"
 #include <glad/glad.h>
 #include <fstream>
 #include <sstream>

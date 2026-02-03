@@ -2,7 +2,7 @@
 #include "Kernel/ModuleManager/ModuleManager.h"
 #include "Kernel/Core/Log.h"
 #include "Engine.Window/WindowModule.h"
-#include "RHI/OpenGL/OpenGLDevice.h"
+#include "Engine/Plugins/RHI.OpenGL/OpenGLDevice.h"
 
 namespace AEngine {
 

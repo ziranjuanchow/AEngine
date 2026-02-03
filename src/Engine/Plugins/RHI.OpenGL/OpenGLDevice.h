@@ -1,6 +1,7 @@
 #pragma once
+#include "Engine.RHI/IRHIDevice.h"
+#include <memory>
 
-#include "../IRHIDevice.h"
 
 namespace AEngine {
 

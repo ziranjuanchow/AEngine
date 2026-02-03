@@ -1,7 +1,7 @@
 #pragma once
-
-#include "../RHIResources.h"
+#include "Engine.RHI/RHIResources.h"
 #include <glad/glad.h>
+
 
 namespace AEngine {
 

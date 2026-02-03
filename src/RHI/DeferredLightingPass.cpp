@@ -1,6 +1,6 @@
 #include "DeferredLightingPass.h"
 #include "../Core/ShaderCompiler.h"
-#include "../Core/Log.h"
+#include "Kernel/Core/Log.h"
 #include "OpenGL/OpenGLResources.h"
 #include <glad/glad.h>
 #include <glm/gtc/matrix_transform.hpp>

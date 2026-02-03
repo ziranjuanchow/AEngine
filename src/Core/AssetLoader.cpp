@@ -1,5 +1,6 @@
 #include "AssetLoader.h"
-#include "Log.h"
+#include "Kernel/Core/Log.h"
+#include "Core/GeometryUtils.h"
 #include "../RHI/OpenGL/OpenGLResources.h"
 #include "../RHI/StandardPBRMaterial.h"
 #include <assimp/Importer.hpp>

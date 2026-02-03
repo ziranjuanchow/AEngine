@@ -1,5 +1,5 @@
 #include "PostProcessPass.h"
-#include "../Core/Log.h"
+#include "Kernel/Core/Log.h"
 #include "OpenGL/OpenGLResources.h"
 #include <glad/glad.h>
 #include <fstream>

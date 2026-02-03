@@ -1,5 +1,5 @@
 #include <catch2/catch_all.hpp>
-#include "../src/Core/Log.h"
+#include "Kernel/Core/Log.h"
 
 TEST_CASE("LogSubsystem can log messages", "[Log]") {
     // This is a bit hard to test without capturing stdout, 

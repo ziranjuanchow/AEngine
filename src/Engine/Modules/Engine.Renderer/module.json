@@ -1,0 +1,6 @@
+{
+  "name": "Engine.Renderer",
+  "type": "EngineModule",
+  "phase": "Default",
+  "dependencies": ["Engine.Window"]
+}

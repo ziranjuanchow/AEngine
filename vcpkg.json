@@ -23,6 +23,7 @@
     "tl-expected",
     "glslang",
     "spirv-cross",
-    "portable-file-dialogs"
+    "portable-file-dialogs",
+    "nlohmann-json"
   ]
 }

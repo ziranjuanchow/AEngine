@@ -19,6 +19,7 @@ find_package(assimp CONFIG REQUIRED)
 find_package(stb REQUIRED)
 find_package(glad CONFIG REQUIRED)
 find_package(imgui CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
 find_package(Catch2 CONFIG REQUIRED)
 find_package(tl-expected CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -36,48 +37,73 @@ else()
     message(WARNING "clang-tidy not found!")
 endif()
 
-add_executable(AEngine 
-    main.cpp
-    src/Core/Log.cpp
-    src/Core/Engine.cpp
-    src/Core/PluginManager.cpp
-    src/Core/WindowSubsystem.cpp
-    src/Core/FApplication.cpp
-    src/Core/SceneNode.cpp
-    src/Core/GeometryUtils.cpp
-    src/Core/ShaderCompiler.cpp
-    src/RHI/OpenGL/OpenGLResources.cpp
-    src/RHI/OpenGL/OpenGLCommandBuffer.cpp
-    src/RHI/OpenGL/OpenGLDevice.cpp
-    src/RHI/OpenGL/OpenGLFramebuffer.cpp
-    src/RHI/StandardPBRMaterial.cpp
+if(MSVC)
+    add_compile_options(/utf-8)
+    add_definitions(-DSPDLOG_COMPILED_LIB -DSPDLOG_SHARED_LIB)
+endif()
+
+# Kernel Library (Level 0)
+add_library(AEngineKernel STATIC
+    src/Kernel/Core/Log.cpp
+    src/Kernel/Core/PluginManager.cpp
+    src/Kernel/ModuleManager/ModuleManager.cpp
+)
+target_link_libraries(AEngineKernel PUBLIC 
+    spdlog::spdlog
+    nlohmann_json::nlohmann_json
+)
+target_include_directories(AEngineKernel PUBLIC src/Kernel src)
+
+# Engine Runtime Modules (Level 1)
+add_library(AEngineRuntime STATIC
+    src/Engine/Modules/Engine.Window/WindowModule.cpp
+    src/Engine/Modules/Engine.Renderer/RenderModule.cpp
+    src/RHI/SceneRenderer.cpp
     src/RHI/ForwardLitPass.cpp
     src/RHI/ShadowPass.cpp
     src/RHI/DeferredGeometryPass.cpp
     src/RHI/DeferredLightingPass.cpp
     src/RHI/PostProcessPass.cpp
-    src/RHI/SceneRenderer.cpp
-    src/Core/AssetLoader.cpp
+    src/RHI/StandardPBRMaterial.cpp
     src/RHI/IBLPreprocessor.cpp
+    src/RHI/OpenGL/OpenGLResources.cpp
+    src/RHI/OpenGL/OpenGLCommandBuffer.cpp
+    src/RHI/OpenGL/OpenGLDevice.cpp
+    src/RHI/OpenGL/OpenGLFramebuffer.cpp
+    src/Core/SceneNode.cpp
+    src/Core/GeometryUtils.cpp
+    src/Core/ShaderCompiler.cpp
+    src/Core/AssetLoader.cpp
 )
-
-
-target_link_libraries(AEngine PRIVATE 
-    spdlog::spdlog
+target_link_libraries(AEngineRuntime PUBLIC 
+    AEngineKernel
     glfw
-    glm::glm
-    RTTR::Core
-    assimp::assimp
     glad::glad
     imgui::imgui
-    tl::expected
+    glm::glm
     OpenGL::GL
+    assimp::assimp
     glslang::glslang
     glslang::SPIRV
     spirv-cross-core
     spirv-cross-glsl
 )
-target_include_directories(AEngine PRIVATE src)
+target_include_directories(AEngineRuntime PUBLIC 
+    src 
+    src/Engine/Modules 
+    src/Engine/Modules/Engine.Renderer
+)
+
+add_executable(AEngine 
+    main.cpp
+    src/Core/FApplication.cpp
+)
+target_link_libraries(AEngine PRIVATE 
+    AEngineRuntime
+    AEngineKernel
+    RTTR::Core
+)
+target_include_directories(AEngine PRIVATE src src/Engine/Modules src/Engine/Modules/Engine.Renderer)
 
 enable_testing()
 add_executable(AEngineTests 
@@ -90,26 +116,14 @@ add_executable(AEngineTests
     tests/VertexTests.cpp
     tests/ShadowTests.cpp
     tests/RHITests.cpp
-    src/Core/Log.cpp
-    src/Core/Engine.cpp
-    src/Core/PluginManager.cpp
-    src/Core/WindowSubsystem.cpp
-    src/Core/SceneNode.cpp
-    src/Core/ShaderCompiler.cpp
 )
 target_link_libraries(AEngineTests PRIVATE 
+    AEngineRuntime
+    AEngineKernel
     Catch2::Catch2WithMain
-    spdlog::spdlog
-    tl::expected
-    glfw
-    glad::glad
-    imgui::imgui
-    OpenGL::GL
-    glm::glm
-    glslang::glslang
-    glslang::SPIRV
 )
-target_include_directories(AEngineTests PRIVATE src)
+
+target_include_directories(AEngineTests PRIVATE src src/Engine/Modules src/Engine/Modules/Engine.Renderer)
 add_test(NAME LogTests COMMAND AEngineTests)
 add_test(NAME EngineTests COMMAND AEngineTests)
 add_test(NAME PluginTests COMMAND AEngineTests)

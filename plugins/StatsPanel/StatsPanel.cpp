@@ -1,4 +1,4 @@
-#include "../../src/Core/Plugin.h"
+#include "Kernel/Core/Plugin.h"
 #include <imgui.h>
 
 namespace AEngine {

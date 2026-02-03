@@ -1,0 +1,6 @@
+{
+  "name": "Engine.Window",
+  "type": "EngineModule",
+  "phase": "PreDefault",
+  "dependencies": ["AEngine.Core"]
+}

@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
-#include "../src/Core/PluginManager.h"
-#include "../src/Core/Log.h"
+#include "Kernel/Core/PluginManager.h"
+#include "Kernel/Core/Log.h"
 
 TEST_CASE("PluginManager can attempt to load plugins", "[Plugin]") {
     AEngine::Log::Init();

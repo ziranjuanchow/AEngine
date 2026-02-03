@@ -1,5 +1,8 @@
 #include "FApplication.h"
-#include "Log.h"
+#include "Kernel/Core/Log.h"
+#include "Kernel/ModuleManager/ModuleManager.h"
+#include "Engine.Window/WindowModule.h"
+#include "Engine.Renderer/RenderModule.h"
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_glfw.h>
@@ -10,45 +13,44 @@ namespace AEngine {
         : m_specs(specs) {
         
         Log::Init();
-        AE_CORE_INFO("Initializing Application: {0}", specs.Name);
+        AE_CORE_INFO("Initializing Modular Application: {0}", specs.Name);
 
-        auto& engine = UEngine::Get();
+        auto& mm = FModuleManager::Get();
         
-        // Register Window Subsystem
-        auto windowSubsystem = std::make_unique<UWindowSubsystem>();
-        // Configure window props if UWindowSubsystem supported it (TODO)
-        m_window = windowSubsystem.get();
-        
-        if (auto result = engine.RegisterSubsystem(std::move(windowSubsystem)); !result) {
-            AE_CORE_CRITICAL("Failed to register WindowSubsystem!");
-            m_running = false;
-            return;
-        }
+        // Phase 0: 静态注册模块
+        mm.RegisterStaticModule("Engine.Window", []() { return std::make_unique<UWindowModule>(); });
+        mm.RegisterStaticModule("Engine.Renderer", []() { return std::make_unique<URenderModule>(); });
 
-        engine.Init();
+        // 扫描并解析
+        mm.DiscoverModules("src/Engine/Modules");
+        mm.ResolveDependencies({"Engine.Window", "Engine.Renderer"});
+        mm.StartupModules();
     }
 
     FApplication::~FApplication() {
-        UEngine::Get().Shutdown();
+        FModuleManager::Get().ShutdownModules();
     }
 
     void FApplication::Run() {
         if (!m_running) return;
 
+        auto* windowModule = FModuleManager::Get().GetModule<UWindowModule>("Engine.Window");
+        if (!windowModule) {
+            AE_CORE_CRITICAL("WindowModule not found! Cannot run application.");
+            return;
+        }
+
         OnInit();
 
         while (m_running) {
-            if (m_window->ShouldClose()) {
+            if (windowModule->ShouldClose()) {
                 m_running = false;
                 continue;
             }
 
-            m_window->Update(); // Poll events, NewFrame
+            // 更新所有模块（包括 WindowModule 的 PollEvents 和 NewFrame）
+            FModuleManager::Get().UpdateModules(0.016f); 
 
-            // Start ImGui Frame (Already started in WindowSubsystem::Update, but we structure it here logically)
-            
-            // Core Rendering / User Update
-            // TODO: Calculate DeltaTime
             OnUpdate(0.016f);
 
             // ImGui Rendering
@@ -57,11 +59,6 @@ namespace AEngine {
             OnImGuiRender();
 
             ImGui::Render();
-            
-            // Note: Clear logic should ideally be in RHI or Renderer, but for now we rely on the App/User to clear 
-            // or the WindowSubsystem to handle swap.
-            // Wait, WindowSubsystem doesn't Clear. The User OnUpdate is responsible for RHI commands.
-            
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
             if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
@@ -71,7 +68,7 @@ namespace AEngine {
                 glfwMakeContextCurrent(backup);
             }
 
-            glfwSwapBuffers(m_window->GetNativeWindow());
+            glfwSwapBuffers(windowModule->GetNativeWindow());
         }
 
         OnShutdown();

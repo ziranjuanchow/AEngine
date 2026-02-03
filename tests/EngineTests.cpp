@@ -1,37 +1,36 @@
 #include <catch2/catch_all.hpp>
-#include "../src/Core/Engine.h"
-#include "../src/Core/Subsystem.h"
-#include "../src/Core/Log.h"
+#include "Kernel/ModuleManager/ModuleManager.h"
+#include "Kernel/Core/Log.h"
 
-class TestSubsystem : public AEngine::IEngineSubsystem {
+using namespace AEngine;
+
+class FTestModule : public IModule {
 public:
     virtual void OnStartup() override { m_started = true; }
     virtual void OnShutdown() override { m_started = false; }
-    virtual std::string GetName() const override { return "TestSubsystem"; }
-
     bool IsStarted() const { return m_started; }
-
 private:
     bool m_started = false;
 };
 
-TEST_CASE("Engine can manage subsystems", "[Engine]") {
-    AEngine::Log::Init();
-    auto& engine = AEngine::UEngine::Get();
+TEST_CASE("ModuleManager can manage modules", "[Kernel]") {
+    Log::Init();
+    auto& mm = FModuleManager::Get();
     
-    SECTION("Subsystem registration") {
-        auto sub = std::make_unique<TestSubsystem>();
-        auto result = engine.RegisterSubsystem(std::move(sub));
-        REQUIRE(result.has_value());
-    }
+    SECTION("Module registration and lifecycle") {
+        mm.RegisterStaticModule("Test.Module", []() { return std::make_unique<FTestModule>(); });
+        
+        // 我们手动模拟发现过程
+        // 在真实场景中会扫描 JSON，这里我们直接注入
+        mm.ResolveDependencies({"Test.Module"});
+        mm.StartupModules();
 
-    SECTION("Engine startup and shutdown") {
-        engine.Init();
-        auto* sub = engine.GetSubsystem<TestSubsystem>();
-        REQUIRE(sub != nullptr);
-        REQUIRE(sub->IsStarted() == true);
+        auto* mod = mm.GetModule<FTestModule>("Test.Module");
+        REQUIRE(mod != nullptr);
+        REQUIRE(mod->IsStarted() == true);
 
-        engine.Shutdown();
-        REQUIRE(sub->IsStarted() == false);
+        mm.ShutdownModules();
+        // 注意：ShutdownModules 会清除 map
+        REQUIRE(mm.GetModule<FTestModule>("Test.Module") == nullptr);
     }
 }

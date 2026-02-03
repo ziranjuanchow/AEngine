@@ -1,9 +1,9 @@
 #include "ShaderCompiler.h"
-#include "Log.h"
+#include "Kernel/Core/Log.h"
+#include <fstream>
 #include <glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
-#include <glslang/Public/ResourceLimits.h>
-#include <fstream>
+
 #include <filesystem>
 
 namespace AEngine {

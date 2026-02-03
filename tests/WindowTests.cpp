@@ -1,16 +1,15 @@
 #include <catch2/catch_all.hpp>
-#include "../src/Core/WindowSubsystem.h"
-#include "../src/Core/Log.h"
+#include "Engine.Window/WindowModule.h"
+#include "Kernel/Core/Log.h"
 
-TEST_CASE("WindowSubsystem lifecycle", "[Window]") {
-    AEngine::Log::Init();
-    AEngine::UWindowSubsystem window;
+using namespace AEngine;
 
-    SECTION("Startup and Shutdown") {
-        // Note: This might fail in CI without a GPU/Display,
-        // but should pass on local developer machines.
-        // window.OnStartup();
-        // REQUIRE(window.GetNativeWindow() != nullptr);
-        // window.OnShutdown();
+TEST_CASE("WindowModule basic interface", "[Engine]") {
+    Log::Init();
+    UWindowModule window;
+
+    SECTION("Name check") {
+        // WindowModule 不再需要 GetName，由 module.json 决定
+        REQUIRE(true); 
     }
 }

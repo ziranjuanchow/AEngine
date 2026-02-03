@@ -1,13 +1,14 @@
 #include <iostream>
 #include <glad/glad.h>
 #include "Core/FApplication.h"
-#include "Core/Log.h"
+#include "Kernel/Core/Log.h"
+#include "Kernel/ModuleManager/ModuleManager.h"
+#include "Engine.Window/WindowModule.h"
+#include "Engine.Renderer/RenderModule.h"
 #include "Core/SceneNode.h"
 #include "Core/PluginManager.h"
 #include "Core/GeometryUtils.h"
 #include "Core/AssetLoader.h"
-#include "RHI/OpenGL/OpenGLDevice.h"
-#include "RHI/SceneRenderer.h"
 #include "RHI/StandardPBRMaterial.h"
 #include "RHI/PostProcessPass.h"
 #include <imgui.h>
@@ -26,20 +27,21 @@ public:
     virtual void OnInit() override {
         AE_CORE_INFO("SandboxApp Init");
 
-        m_device = std::make_shared<FOpenGLDevice>();
-        
-        // 1. Initialize Renderer
-        m_renderer = std::make_unique<FSceneRenderer>(m_device);
-        m_renderer->Init(1600, 900);
+        auto* renderModule = FModuleManager::Get().GetModule<URenderModule>("Engine.Renderer");
+        if (!renderModule) {
+            AE_CORE_CRITICAL("RenderModule not found!");
+            return;
+        }
+        auto device = renderModule->GetDevice();
 
         // 2. Load Resources (Fallback)
         uint32_t sphereIndexCount;
-        FGeometryUtils::CreateSphere(*m_device, m_sphereVB, m_sphereIB, sphereIndexCount);
+        FGeometryUtils::CreateSphere(*device, m_sphereVB, m_sphereIB, sphereIndexCount);
         m_sphereIndexCount = sphereIndexCount;
 
         std::shared_ptr<IRHIBuffer> quadVB, quadIB;
         uint32_t quadIndexCount;
-        FGeometryUtils::CreateQuad(*m_device, quadVB, quadIB, quadIndexCount);
+        FGeometryUtils::CreateQuad(*device, quadVB, quadIB, quadIndexCount);
 
         // 3. Material Setup
         m_pbrMat = std::make_shared<FStandardPBRMaterial>("StandardPBR");
@@ -110,13 +112,18 @@ public:
         for (auto& action : m_deferredActions) action();
         m_deferredActions.clear();
 
-        GLFWwindow* window = m_window->GetNativeWindow();
+        auto* renderModule = FModuleManager::Get().GetModule<URenderModule>("Engine.Renderer");
+        auto* windowMod = FModuleManager::Get().GetModule<UWindowModule>("Engine.Window");
+        
+        if (!renderModule || !windowMod) return;
+
+        GLFWwindow* window = windowMod->GetNativeWindow();
         int w, h;
         glfwGetFramebufferSize(window, &w, &h);
         if (w <= 0 || h <= 0) return;
 
         // Resize renderer if needed
-        m_renderer->Resize(w, h);
+        renderModule->Resize(w, h);
 
         // Camera Control
         float speed = 5.0f * deltaTime;
@@ -156,8 +163,6 @@ public:
         // Prepare Context
         FRenderContext ctx;
         ctx.ViewMatrix = glm::lookAt(m_cameraPos, m_cameraPos + cameraFront, cameraUp);
-        // Force Renderer internal aspect ratio? No, let's allow renderer to decide based on width/height.
-        // Actually SceneRenderer uses width/height for Projection too.
         ctx.ProjectionMatrix = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 100.0f);
         ctx.CameraPosition = m_cameraPos;
         ctx.LightPosition = glm::vec3(10.0f, 10.0f, 10.0f);
@@ -177,7 +182,7 @@ public:
         ctx.PointLights = m_pointLights;
 
         // Render!
-        m_renderer->Render(ctx, m_deferredList, m_forwardList);
+        renderModule->Render(ctx, m_deferredList, m_forwardList);
     }
 
     void CollectRenderables(FSceneNode* node) {
@@ -243,15 +248,18 @@ public:
         }
         ImGui::SameLine();
         if (ImGui::Button("Load Model")) {
-            if (auto newModel = FAssetLoader::LoadModel(*m_device, modelPath)) {
-                auto modelNode = std::make_unique<FSceneNode>("ImportedModel");
-                for (size_t i = 0; i < newModel->Renderables.size(); ++i) {
-                    auto meshNode = std::make_unique<FSceneNode>("Mesh_" + std::to_string(i));
-                    meshNode->AddRenderable(newModel->Renderables[i]);
-                    modelNode->AddChild(std::move(meshNode));
+            auto* renderModule = FModuleManager::Get().GetModule<URenderModule>("Engine.Renderer");
+            if (renderModule) {
+                if (auto newModel = FAssetLoader::LoadModel(*renderModule->GetDevice(), modelPath)) {
+                    auto modelNode = std::make_unique<FSceneNode>("ImportedModel");
+                    for (size_t i = 0; i < newModel->Renderables.size(); ++i) {
+                        auto meshNode = std::make_unique<FSceneNode>("Mesh_" + std::to_string(i));
+                        meshNode->AddRenderable(newModel->Renderables[i]);
+                        modelNode->AddChild(std::move(meshNode));
+                    }
+                    if (m_selectedNode) m_selectedNode->AddChild(std::move(modelNode));
+                    else m_rootNode->AddChild(std::move(modelNode));
                 }
-                if (m_selectedNode) m_selectedNode->AddChild(std::move(modelNode));
-                else m_rootNode->AddChild(std::move(modelNode));
             }
         }
         if (ImGui::Button("Reset Camera")) { m_cameraPos = glm::vec3(0.0f, 0.0f, 10.0f); m_cameraYaw = -90.0f; m_cameraPitch = 0.0f; }
@@ -285,9 +293,6 @@ public:
     }
 
 private:
-    std::shared_ptr<FOpenGLDevice> m_device;
-    std::unique_ptr<FSceneRenderer> m_renderer;
-    
     std::shared_ptr<FStandardPBRMaterial> m_pbrMat;
     std::shared_ptr<IRHIBuffer> m_sphereVB, m_sphereIB;
     uint32_t m_sphereIndexCount = 0;

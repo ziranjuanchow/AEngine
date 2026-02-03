@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Subsystem.h"
+#include "Kernel/Core/Module.h"
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
 #include <string>
@@ -18,15 +18,18 @@ namespace AEngine {
             : Title(title), Width(width), Height(height) {}
     };
 
-    class UWindowSubsystem : public IEngineSubsystem {
+    /**
+     * @brief 窗口模块
+     */
+    class UWindowModule : public IModule {
     public:
+        // --- IModule Interface ---
         virtual void OnStartup() override;
         virtual void OnShutdown() override;
-        virtual std::string GetName() const override { return "WindowSubsystem"; }
+        virtual void OnUpdate(float deltaTime) override;
+        // -------------------------
 
-        void Update();
         bool ShouldClose() const;
-
         GLFWwindow* GetNativeWindow() const { return m_window; }
 
     private:

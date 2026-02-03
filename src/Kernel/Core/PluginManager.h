@@ -5,7 +5,7 @@
 #include <memory>
 #include <unordered_map>
 #include <windows.h> // For HMODULE
-#include "Engine.h"
+#include "Kernel/Core/EngineTypes.h"
 #include "Plugin.h"
 
 namespace AEngine {

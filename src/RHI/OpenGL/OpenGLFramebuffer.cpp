@@ -1,6 +1,7 @@
 #include "OpenGLFramebuffer.h"
+#include <glad/glad.h>
+#include "Kernel/Core/Log.h"
 #include "OpenGLResources.h"
-#include "../../Core/Log.h"
 
 namespace AEngine {
 

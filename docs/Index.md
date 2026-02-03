@@ -4,6 +4,7 @@ Welcome to the AEngine documentation.
 
 ## Overview
 - [Project Overview](./ProjectOverview.md) - Vision, Architecture, and Tech Stack.
+- [Architecture Overview](./Architecture.md) - Subsystems, Ownership, and Data Flow.
 
 ## Feature Guides
 Detailed documentation for implemented features:

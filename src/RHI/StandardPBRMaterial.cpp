@@ -1,6 +1,6 @@
 #include "StandardPBRMaterial.h"
 #include "../Core/ShaderCompiler.h"
-#include "../Core/Log.h"
+#include "Kernel/Core/Log.h"
 #include "OpenGL/OpenGLResources.h"
 #include <fstream>
 #include <sstream>

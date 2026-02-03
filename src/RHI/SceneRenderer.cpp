@@ -5,7 +5,7 @@
 #include "ForwardLitPass.h"
 #include "PostProcessPass.h"
 #include "StandardPBRMaterial.h"
-#include "../Core/Log.h"
+#include "Kernel/Core/Log.h"
 #include "../Core/GeometryUtils.h"
 #include <glad/glad.h>
 

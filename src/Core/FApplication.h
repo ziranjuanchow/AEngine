@@ -2,8 +2,7 @@
 
 #include <memory>
 #include <string>
-#include "Engine.h"
-#include "WindowSubsystem.h"
+#include "Kernel/Core/Module.h"
 
 namespace AEngine {
 
@@ -28,7 +27,6 @@ namespace AEngine {
     protected:
         FApplicationSpecs m_specs;
         bool m_running = true;
-        UWindowSubsystem* m_window = nullptr; // Raw ptr, owned by Engine
     };
 
     // To be defined in CLIENT

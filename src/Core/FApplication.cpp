@@ -3,6 +3,11 @@
 #include "Kernel/ModuleManager/ModuleManager.h"
 #include "Engine.Window/WindowModule.h"
 #include "Engine.Renderer/RenderModule.h"
+// 在 Phase 0/1 混合期，为了静态链接，我们需要引用 RHIModule 的实现来注册它
+// 但理想情况下，我们不应该引用 Engine/Plugins 下的 cpp 文件
+// 我们可以声明一个外部函数，或者更优雅地，把 CreateModule 导出
+namespace AEngine { extern IModule* CreateOpenGLModule(); } 
+
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_glfw.h>
@@ -23,7 +28,10 @@ namespace AEngine {
 
         // 扫描并解析
         mm.DiscoverModules("src/Engine/Modules");
-        mm.ResolveDependencies({"Engine.Window", "Engine.Renderer"});
+        mm.DiscoverModules("src/Engine/Plugins");
+        
+        // 启用模块：Window, Renderer 以及具体的 RHI 实现 (OpenGL)
+        mm.ResolveDependencies({"Engine.Window", "Engine.Renderer", "RHI.OpenGL"});
         mm.StartupModules();
     }
 

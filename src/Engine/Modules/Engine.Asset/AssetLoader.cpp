@@ -2,7 +2,6 @@
 #include "Kernel/Core/Log.h"
 #include "Engine.Scene/GeometryUtils.h"
 #include "Engine.RHI/RHIDefinitions.h"
-#include "Engine/Plugins/RHI.OpenGL/OpenGLResources.h"
 #include "Engine.Renderer/StandardPBRMaterial.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -14,7 +13,7 @@
 
 namespace AEngine {
 
-    static std::shared_ptr<IRHITexture> LoadTextureForMaterial(const aiMaterial* mat, aiTextureType type, const std::string& modelPath) {
+    static std::shared_ptr<IRHITexture> LoadTextureForMaterial(IRHIDevice& device, const aiMaterial* mat, aiTextureType type, const std::string& modelPath) {
         if (mat->GetTextureCount(type) > 0) {
             aiString str;
             mat->GetTexture(type, 0, &str);
@@ -24,7 +23,7 @@ namespace AEngine {
             std::string pathStr = texturePath.string();
             // TODO: Ensure path exists or fallback
             
-            return FAssetLoader::LoadTexture(pathStr);
+            return FAssetLoader::LoadTexture(device, pathStr);
         }
         return nullptr;
     }
@@ -134,12 +133,12 @@ namespace AEngine {
             auto mat = std::make_shared<FStandardPBRMaterial>("AssimpMat_" + std::to_string(i));
             mat->LoadShaders("shaders/StandardPBR.vert", "shaders/StandardPBR.frag");
 
-            if (auto tex = LoadTextureForMaterial(aiMat, aiTextureType_DIFFUSE, path)) {
+            if (auto tex = LoadTextureForMaterial(device, aiMat, aiTextureType_DIFFUSE, path)) {
                 mat->SetParameter("albedoMap", tex);
             }
-            if (auto tex = LoadTextureForMaterial(aiMat, aiTextureType_NORMALS, path)) {
+            if (auto tex = LoadTextureForMaterial(device, aiMat, aiTextureType_NORMALS, path)) {
                 mat->SetParameter("normalMap", tex);
-            } else if (auto tex = LoadTextureForMaterial(aiMat, aiTextureType_HEIGHT, path)) {
+            } else if (auto tex = LoadTextureForMaterial(device, aiMat, aiTextureType_HEIGHT, path)) {
                 mat->SetParameter("normalMap", tex);
             }
 
@@ -165,7 +164,7 @@ namespace AEngine {
         return model;
     }
 
-    std::shared_ptr<IRHITexture> FAssetLoader::LoadTexture(const std::string& path, bool srgb) {
+    std::shared_ptr<IRHITexture> FAssetLoader::LoadTexture(IRHIDevice& device, const std::string& path, bool srgb) {
         int width, height, nrChannels;
         unsigned char* data = stbi_load(path.c_str(), &width, &height, &nrChannels, 4); // Force 4 channels for simplicity
         
@@ -179,13 +178,13 @@ namespace AEngine {
         // Note: Our ERHIPixelFormat is limited. We might need RGBA8_SRGB in the future.
         // For now, we use RGBA8_UNORM and handle gamma in shader or assume linear flow.
         
-        auto texture = std::make_shared<FOpenGLTexture>(width, height, ERHIPixelFormat::RGBA8_UNORM, data);
+        auto texture = device.CreateTexture(width, height, ERHIPixelFormat::RGBA8_UNORM, data);
         
         stbi_image_free(data);
         return texture;
     }
 
-    std::shared_ptr<IRHITexture> FAssetLoader::LoadHDRTexture(const std::string& path) {
+    std::shared_ptr<IRHITexture> FAssetLoader::LoadHDRTexture(IRHIDevice& device, const std::string& path) {
         stbi_set_flip_vertically_on_load(true);
         int width, height, nrComponents;
         float* data = stbi_loadf(path.c_str(), &width, &height, &nrComponents, 0);
@@ -199,7 +198,7 @@ namespace AEngine {
 
         // Currently we directly use OpenGL backend implementation.
         // In a more abstract RHI, we would use IRHIDevice::CreateTexture
-        auto texture = std::make_shared<FOpenGLTexture>(width, height, ERHIPixelFormat::RGBA16_FLOAT, data);
+        auto texture = device.CreateTexture(width, height, ERHIPixelFormat::RGBA16_FLOAT, data);
 
         stbi_image_free(data);
         return texture;

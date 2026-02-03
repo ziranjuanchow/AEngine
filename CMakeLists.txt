@@ -78,6 +78,7 @@ add_library(AEngineRuntime STATIC
 )
 target_link_libraries(AEngineRuntime PUBLIC 
     AEngineKernel
+    RHI.OpenGL # Temporary static link for Phase 2
     glfw
     glad::glad
     imgui::imgui
@@ -154,3 +155,22 @@ add_test(NAME SceneTests COMMAND AEngineTests)
 add_library(StatsPanel SHARED plugins/StatsPanel/StatsPanel.cpp)
 target_link_libraries(StatsPanel PRIVATE imgui::imgui)
 target_include_directories(StatsPanel PRIVATE src)
+
+# RHI Plugin (Level 2)
+add_library(RHI.OpenGL SHARED
+    src/Engine/Plugins/RHI.OpenGL/OpenGLResources.cpp
+    src/Engine/Plugins/RHI.OpenGL/OpenGLCommandBuffer.cpp
+    src/Engine/Plugins/RHI.OpenGL/OpenGLDevice.cpp
+    src/Engine/Plugins/RHI.OpenGL/OpenGLFramebuffer.cpp
+    src/Engine/Plugins/RHI.OpenGL/RHIModule.cpp
+)
+target_link_libraries(RHI.OpenGL PRIVATE 
+    AEngineKernel
+    glad::glad
+    glfw
+)
+target_include_directories(RHI.OpenGL PRIVATE 
+    src 
+    src/Engine/Modules 
+    src/Engine/Plugins/RHI.OpenGL
+)

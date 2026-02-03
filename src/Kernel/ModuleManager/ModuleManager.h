@@ -48,12 +48,13 @@ namespace AEngine {
 
         void SortModulesByDependency();
 
-        // STL containers with unique_ptr are tricky to export, so we don't export the class.
-        // Public methods are exported individually.
         std::map<std::string, ModuleFactory> m_staticFactories;
         std::map<std::string, FModuleInfo> m_discoveredModules;
         std::vector<std::string> m_activeModuleNames;
         std::map<std::string, std::unique_ptr<IModule>> m_loadedModules;
+        
+        // 存储动态库句柄，key 为模块名
+        std::map<std::string, void*> m_moduleHandles; 
     };
 
 }

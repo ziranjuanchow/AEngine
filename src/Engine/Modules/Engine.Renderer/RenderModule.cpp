@@ -2,14 +2,19 @@
 #include "Kernel/ModuleManager/ModuleManager.h"
 #include "Kernel/Core/Log.h"
 #include "Engine.Window/WindowModule.h"
-#include "Engine/Plugins/RHI.OpenGL/OpenGLDevice.h"
+#include "Engine.RHI/RHIModule.h"
 
 namespace AEngine {
 
     void URenderModule::OnStartup() {
         AE_CORE_INFO("RenderModule starting...");
         
-        m_device = std::make_shared<FOpenGLDevice>();
+        auto* rhiModule = FModuleManager::Get().GetModule<IRHIModule>("RHI.OpenGL");
+        if (!rhiModule) {
+             AE_CORE_CRITICAL("RenderModule: RHI.OpenGL module not found! Ensure it is enabled in config.");
+             return; // Or fallback
+        }
+        m_device = rhiModule->CreateDevice();
         m_renderer = std::make_unique<FSceneRenderer>(m_device);
 
         auto* windowMod = FModuleManager::Get().GetModule<UWindowModule>("Engine.Window");

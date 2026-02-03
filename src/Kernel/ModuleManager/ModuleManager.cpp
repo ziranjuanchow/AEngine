@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 #include <stack>
+#include <windows.h> // For LoadLibrary
 
 namespace AEngine {
 
@@ -67,7 +68,10 @@ namespace AEngine {
 
             auto it = m_discoveredModules.find(name);
             if (it == m_discoveredModules.end()) {
-                AE_CORE_ERROR("Module not found: {0}", name);
+                // 如果是 Kernel，我们可以忽略，因为它已经加载了
+                if (name != "AEngine.Kernel" && name != "AEngine.Core") {
+                    AE_CORE_ERROR("Module not found: {0}", name);
+                }
                 return;
             }
 
@@ -90,7 +94,6 @@ namespace AEngine {
     void FModuleManager::RegisterStaticModule(const std::string& name, ModuleFactory factory) {
         m_staticFactories[name] = std::move(factory);
         
-        // 如果该模块尚未被发现（没有 JSON），则创建一个基础信息
         if (m_discoveredModules.find(name) == m_discoveredModules.end()) {
             FModuleInfo info;
             info.Name = name;
@@ -103,14 +106,55 @@ namespace AEngine {
         AE_CORE_INFO("Starting up modules...");
         
         for (const auto& name : m_activeModuleNames) {
+            // 1. 尝试静态加载
             auto factoryIt = m_staticFactories.find(name);
             if (factoryIt != m_staticFactories.end()) {
                 AE_CORE_TRACE("Instantiating static module: {0}", name);
                 auto module = factoryIt->second();
                 module->OnStartup();
                 m_loadedModules[name] = std::move(module);
-            } else {
-                AE_CORE_ERROR("No factory registered for module: {0}", name);
+                continue;
+            }
+
+            // 2. 尝试动态加载
+            auto infoIt = m_discoveredModules.find(name);
+            if (infoIt != m_discoveredModules.end()) {
+                std::string dllName = name + ".dll";
+                
+                // 简单的路径查找逻辑
+                HMODULE handle = LoadLibraryA(dllName.c_str());
+                if (!handle) {
+                    // 尝试加前缀或在子目录
+                    std::string altPath = "bin/" + dllName;
+                    handle = LoadLibraryA(altPath.c_str());
+                }
+
+                if (handle) {
+                    auto createFunc = (CreateModuleFunc)GetProcAddress(handle, "CreateModule");
+                    if (createFunc) {
+                        IModule* modulePtr = createFunc();
+                        if (modulePtr) {
+                            AE_CORE_INFO("Loaded dynamic module: {0}", name);
+                            // 模块加载钩子
+                            modulePtr->OnLoad();
+                            // 启动
+                            modulePtr->OnStartup();
+                            
+                            m_loadedModules[name] = std::unique_ptr<IModule>(modulePtr);
+                            m_moduleHandles[name] = handle;
+                            continue;
+                        } else {
+                            AE_CORE_ERROR("CreateModule returned nullptr for: {0}", name);
+                        }
+                    } else {
+                        AE_CORE_ERROR("Failed to find CreateModule entry point in: {0}", dllName);
+                    }
+                    FreeLibrary(handle);
+                } else {
+                    if (name != "AEngine.Kernel") {
+                        AE_CORE_ERROR("Failed to load DLL: {0}", dllName);
+                    }
+                }
             }
         }
     }
@@ -122,6 +166,14 @@ namespace AEngine {
             if (loadedIt != m_loadedModules.end()) {
                 AE_CORE_TRACE("Shutting down module: {0}", *it);
                 loadedIt->second->OnShutdown();
+                loadedIt->second->OnUnload();
+                loadedIt->second.reset(); 
+            }
+            
+            auto handleIt = m_moduleHandles.find(*it);
+            if (handleIt != m_moduleHandles.end()) {
+                FreeLibrary((HMODULE)handleIt->second);
+                m_moduleHandles.erase(handleIt);
             }
         }
         m_loadedModules.clear();

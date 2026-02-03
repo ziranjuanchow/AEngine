@@ -43,11 +43,12 @@ if(MSVC)
 endif()
 
 # Kernel Library (Level 0)
-add_library(AEngineKernel STATIC
+add_library(AEngineKernel SHARED
     src/Kernel/Core/Log.cpp
     src/Kernel/Core/PluginManager.cpp
     src/Kernel/ModuleManager/ModuleManager.cpp
 )
+target_compile_definitions(AEngineKernel PRIVATE AENGINE_KERNEL_EXPORTS)
 target_link_libraries(AEngineKernel PUBLIC 
     spdlog::spdlog
     nlohmann_json::nlohmann_json

@@ -10,9 +10,6 @@
 
 namespace AEngine {
 
-    /**
-     * @brief 模块元数据
-     */
     struct FModuleInfo {
         std::string Name;
         std::string FilePath;
@@ -23,47 +20,19 @@ namespace AEngine {
         static FModuleInfo FromJson(const nlohmann::json& j);
     };
 
-    /**
-     * @brief 模块管理器（微内核核心）
-     */
     class FModuleManager {
     public:
-        static FModuleManager& Get();
+        static AE_API FModuleManager& Get();
 
-        /**
-         * @brief 静态注册模块工厂（用于 Phase 0）
-         */
         using ModuleFactory = std::function<std::unique_ptr<IModule>()>;
-        void RegisterStaticModule(const std::string& name, ModuleFactory factory);
+        AE_API void RegisterStaticModule(const std::string& name, ModuleFactory factory);
 
-        /**
-         * @brief 扫描指定目录下的模块描述文件
-         */
-        void DiscoverModules(const std::string& rootPath);
+        AE_API void DiscoverModules(const std::string& rootPath);
+        AE_API void ResolveDependencies(const std::vector<std::string>& enabledModules);
+        AE_API void StartupModules();
+        AE_API void ShutdownModules();
+        AE_API void UpdateModules(float deltaTime);
 
-        /**
-         * @brief 根据项目配置启用特定模块，并递归解析依赖
-         */
-        void ResolveDependencies(const std::vector<std::string>& enabledModules);
-
-        /**
-         * @brief 启动所有已解析的模块
-         */
-        void StartupModules();
-
-        /**
-         * @brief 关闭所有模块
-         */
-        void ShutdownModules();
-
-        /**
-         * @brief 每帧更新活动模块
-         */
-        void UpdateModules(float deltaTime);
-
-        /**
-         * @brief 获取已加载的模块实例
-         */
         template<typename T>
         T* GetModule(const std::string& name) {
             auto it = m_loadedModules.find(name);
@@ -77,9 +46,10 @@ namespace AEngine {
         FModuleManager() = default;
         ~FModuleManager() = default;
 
-        // 拓扑排序辅助函数
         void SortModulesByDependency();
 
+        // STL containers with unique_ptr are tricky to export, so we don't export the class.
+        // Public methods are exported individually.
         std::map<std::string, ModuleFactory> m_staticFactories;
         std::map<std::string, FModuleInfo> m_discoveredModules;
         std::vector<std::string> m_activeModuleNames;

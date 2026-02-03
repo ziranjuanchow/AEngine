@@ -1,6 +1,5 @@
 #include "PluginManager.h"
 #include "Log.h"
-#include <imgui.h>
 
 namespace AEngine {
 
@@ -44,11 +43,14 @@ namespace AEngine {
             return AEngine::unexpected(PluginError::AlreadyLoaded);
         }
 
-        instance->Initialize(ImGui::GetCurrentContext());
+        instance->Initialize(nullptr);
         instance->OnLoad();
         AE_CORE_INFO("Successfully loaded plugin: {0}", name);
 
-        m_loadedPlugins[name] = { handle, std::unique_ptr<IPlugin>(instance) };
+        PluginData data;
+        data.handle = handle;
+        data.instance = std::unique_ptr<IPlugin>(instance);
+        m_loadedPlugins.emplace(name, std::move(data));
         return instance;
     }
 

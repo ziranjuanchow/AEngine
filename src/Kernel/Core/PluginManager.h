@@ -1,12 +1,12 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <memory>
-#include <unordered_map>
-#include <windows.h> // For HMODULE
 #include "Kernel/Core/EngineTypes.h"
 #include "Plugin.h"
+#include "Module.h"
+#include <unordered_map>
+#include <memory>
+#include <string>
+#include <windows.h> 
 
 namespace AEngine {
 
@@ -19,13 +19,13 @@ namespace AEngine {
 
     class APluginManager {
     public:
-        static APluginManager& Get();
+        static AE_API APluginManager& Get();
 
-        AEngine::expected<IPlugin*, PluginError> LoadPlugin(const std::string& path);
-        void UnloadPlugin(const std::string& name);
-        void UnloadAll();
+        AE_API AEngine::expected<IPlugin*, PluginError> LoadPlugin(const std::string& path);
+        AE_API void UnloadPlugin(const std::string& name);
+        AE_API void UnloadAll();
 
-        IPlugin* GetPlugin(const std::string& name) const;
+        AE_API IPlugin* GetPlugin(const std::string& name) const;
 
     private:
         APluginManager() = default;

@@ -29,4 +29,7 @@ namespace AEngine {
         s_clientLogger->flush_on(spdlog::level::trace);
     }
 
+    std::shared_ptr<spdlog::logger>& Log::GetCoreLogger() { return s_coreLogger; }
+    std::shared_ptr<spdlog::logger>& Log::GetClientLogger() { return s_clientLogger; }
+
 }

@@ -1,0 +1,7 @@
+{
+  "name": "Engine.Scene",
+  "type": "EngineModule",
+  "phase": "Default",
+  "hasDll": false,
+  "dependencies": ["AEngine.Kernel", "Engine.RHI"]
+}

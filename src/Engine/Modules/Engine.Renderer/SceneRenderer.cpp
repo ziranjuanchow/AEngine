@@ -172,10 +172,17 @@ namespace AEngine {
         m_hdrForwardFBO->Unbind();
         UnbindAllTextures();
 
+        // ---------------------------------------------------------
+        // Final: Post Process -> Screen
+        // ---------------------------------------------------------
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         glViewport(0, 0, m_width, m_height);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Ensure clear color is black
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        ResetRenderState();
+        
+        // Disable depth test for fullscreen quad pass
+        glDisable(GL_DEPTH_TEST);
+        glDisable(GL_CULL_FACE);
 
         if (m_postProcessPass) {
             m_postProcessPass->Execute(*m_cmdBuffer, context, deferredList);

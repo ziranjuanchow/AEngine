@@ -71,6 +71,7 @@ add_library(AEngineRuntime STATIC
     src/Engine/Modules/Engine.Scene/GeometryUtils.cpp
     src/Engine/Modules/Engine.RHI/ShaderCompiler.cpp
     src/Engine/Modules/Engine.Asset/AssetLoader.cpp
+    src/Projects/Sandbox/SandboxModule.cpp
 )
 target_link_libraries(AEngineRuntime PUBLIC 
     AEngineKernel

@@ -1,0 +1,6 @@
+{
+  "name": "Project.Sandbox",
+  "type": "ProjectModule",
+  "phase": "Default",
+  "dependencies": ["Engine.Window", "Engine.Renderer", "Engine.Scene", "Engine.Asset"]
+}

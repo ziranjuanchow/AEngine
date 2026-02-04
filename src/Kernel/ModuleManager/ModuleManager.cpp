@@ -43,7 +43,7 @@ namespace AEngine {
                     FModuleInfo info = FModuleInfo::FromJson(j);
                     info.FilePath = entry.path().parent_path().string();
                     
-                    AE_CORE_TRACE("Found module: {0} at {1}", info.Name, info.FilePath);
+                    // AE_CORE_TRACE("Found module: {0} at {1}", info.Name, info.FilePath);
                     m_discoveredModules[info.Name] = info;
                 } catch (const std::exception& e) {
                     AE_CORE_ERROR("Failed to parse module.json at {0}: {1}", entry.path().string(), e.what());
@@ -73,7 +73,6 @@ namespace AEngine {
 
             auto it = m_discoveredModules.find(name);
             if (it == m_discoveredModules.end()) {
-                // 如果是 Kernel，我们可以忽略，因为它已经加载了
                 if (name != "AEngine.Kernel" && name != "AEngine.Core") {
                     AE_CORE_ERROR("Dependency resolution failed: Module not found: {0}", name);
                     bFailed = true;
@@ -119,13 +118,13 @@ namespace AEngine {
     }
 
     void FModuleManager::StartupModules() {
-        AE_CORE_INFO("Starting up modules...");
+        AE_CORE_INFO("Starting up modules sequence...");
         
         for (const auto& name : m_activeModuleNames) {
             // 1. 尝试静态加载
             auto factoryIt = m_staticFactories.find(name);
             if (factoryIt != m_staticFactories.end()) {
-                AE_CORE_TRACE("Instantiating static module: {0}", name);
+                AE_CORE_TRACE("  [Static] Instantiating: {0}", name);
                 auto module = factoryIt->second();
                 module->OnStartup();
                 m_loadedModules[name] = std::move(module);
@@ -136,16 +135,14 @@ namespace AEngine {
             auto infoIt = m_discoveredModules.find(name);
             if (infoIt != m_discoveredModules.end()) {
                 if (!infoIt->second.bHasDll) {
-                    AE_CORE_TRACE("Skipping DLL load for static/interface module: {0}", name);
+                    AE_CORE_TRACE("  [Interface/Lib] Active but no instance: {0}", name);
                     continue;
                 }
 
                 std::string dllName = name + ".dll";
                 
-                // 简单的路径查找逻辑
                 HMODULE handle = LoadLibraryA(dllName.c_str());
                 if (!handle) {
-                    // 尝试加前缀或在子目录
                     std::string altPath = "bin/" + dllName;
                     handle = LoadLibraryA(altPath.c_str());
                 }
@@ -155,10 +152,8 @@ namespace AEngine {
                     if (createFunc) {
                         IModule* modulePtr = createFunc();
                         if (modulePtr) {
-                            AE_CORE_INFO("Loaded dynamic module: {0}", name);
-                            // 模块加载钩子
+                            AE_CORE_INFO("  [Dynamic] Loaded: {0}", name);
                             modulePtr->OnLoad();
-                            // 启动
                             modulePtr->OnStartup();
                             
                             m_loadedModules[name] = std::unique_ptr<IModule>(modulePtr);
@@ -173,11 +168,12 @@ namespace AEngine {
                     FreeLibrary(handle);
                 } else {
                     if (name != "AEngine.Kernel") {
-                        AE_CORE_ERROR("Failed to load DLL: {0}", dllName);
+                        AE_CORE_ERROR("Failed to load DLL: {0} (Error: {1})", dllName, GetLastError());
                     }
                 }
             }
         }
+        AE_CORE_INFO("Module startup sequence complete.");
     }
 
     void FModuleManager::ShutdownModules() {

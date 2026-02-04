@@ -3,11 +3,7 @@
 #include "Kernel/ModuleManager/ModuleManager.h"
 #include "Engine.Window/WindowModule.h"
 #include "Engine.Renderer/RenderModule.h"
-// 在 Phase 0/1 混合期，为了静态链接，我们需要引用 RHIModule 的实现来注册它
-// 但理想情况下，我们不应该引用 Engine/Plugins 下的 cpp 文件
-// 我们可以声明一个外部函数，或者更优雅地，把 CreateModule 导出
-namespace AEngine { extern IModule* CreateOpenGLModule(); } 
-
+#include "Projects/Sandbox/SandboxModule.h"
 #include <imgui.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_glfw.h>
@@ -25,13 +21,15 @@ namespace AEngine {
         // Phase 0: 静态注册模块
         mm.RegisterStaticModule("Engine.Window", []() { return std::make_unique<UWindowModule>(); });
         mm.RegisterStaticModule("Engine.Renderer", []() { return std::make_unique<URenderModule>(); });
+        mm.RegisterStaticModule("Project.Sandbox", []() { return std::make_unique<SandboxModule>(); });
 
         // 扫描并解析
         mm.DiscoverModules("src/Engine/Modules");
         mm.DiscoverModules("src/Engine/Plugins");
+        mm.DiscoverModules("src/Projects");
         
-        // 启用模块：Window, Renderer 以及具体的 RHI 实现 (OpenGL)
-        if (!mm.ResolveDependencies({"Engine.Window", "Engine.Renderer", "RHI.OpenGL"})) {
+        // 启用模块
+        if (!mm.ResolveDependencies({"Engine.Window", "Engine.Renderer", "RHI.OpenGL", "Project.Sandbox"})) {
             AE_CORE_CRITICAL("Failed to resolve module dependencies! Application cannot start.");
             m_running = false;
             return;

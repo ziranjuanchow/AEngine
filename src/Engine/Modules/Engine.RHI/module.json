@@ -2,5 +2,6 @@
   "name": "Engine.RHI",
   "type": "EngineModule",
   "phase": "PreDefault",
+  "hasDll": false,
   "dependencies": ["AEngine.Kernel"]
 }

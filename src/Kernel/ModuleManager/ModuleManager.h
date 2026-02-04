@@ -16,6 +16,7 @@ namespace AEngine {
         std::vector<std::string> Dependencies;
         EModuleLoadingPhase Phase = EModuleLoadingPhase::Default;
         bool bIsEnabled = false;
+        bool bHasDll = true;
 
         static FModuleInfo FromJson(const nlohmann::json& j);
     };

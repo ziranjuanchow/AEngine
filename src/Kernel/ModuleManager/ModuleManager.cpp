@@ -22,6 +22,8 @@ namespace AEngine {
         else if (phaseStr == "Latest") info.Phase = EModuleLoadingPhase::Latest;
         else info.Phase = EModuleLoadingPhase::Default;
         
+        info.bHasDll = j.value("hasDll", true);
+
         return info;
     }
 
@@ -119,6 +121,11 @@ namespace AEngine {
             // 2. 尝试动态加载
             auto infoIt = m_discoveredModules.find(name);
             if (infoIt != m_discoveredModules.end()) {
+                if (!infoIt->second.bHasDll) {
+                    AE_CORE_TRACE("Skipping DLL load for static/interface module: {0}", name);
+                    continue;
+                }
+
                 std::string dllName = name + ".dll";
                 
                 // 简单的路径查找逻辑

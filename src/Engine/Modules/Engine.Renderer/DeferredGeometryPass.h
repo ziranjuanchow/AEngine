@@ -7,7 +7,7 @@ namespace AEngine {
 
     class FDeferredGeometryPass : public FRenderPass {
     public:
-        FDeferredGeometryPass(std::shared_ptr<IRHIFramebuffer> gBuffer);
+        FDeferredGeometryPass(std::shared_ptr<IRHIDevice> device, std::shared_ptr<IRHIFramebuffer> gBuffer);
         virtual ~FDeferredGeometryPass();
 
         virtual void Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) override;

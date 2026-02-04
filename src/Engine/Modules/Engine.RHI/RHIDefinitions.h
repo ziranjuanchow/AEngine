@@ -48,4 +48,10 @@ namespace AEngine {
         Uniform
     };
 
+    enum class ERHIShaderStage {
+        Vertex,
+        Fragment,
+        Compute
+    };
+
 }

@@ -20,8 +20,8 @@ namespace AEngine {
     private:
         GLuint m_handle = 0;
         GLenum m_target;
-        GLenum m_glType; // Added member
-        uint32_t m_size; // Added member
+        GLenum m_glType; 
+        uint32_t m_size; 
     };
 
     class FOpenGLTexture : public IRHITexture {
@@ -43,9 +43,24 @@ namespace AEngine {
         ERHIPixelFormat m_format;
     };
 
+    class FOpenGLShader : public IRHIShader {
+    public:
+        FOpenGLShader(const std::vector<uint32_t>& spirv, ERHIShaderStage stage);
+        virtual ~FOpenGLShader();
+        virtual ERHIShaderStage GetStage() const override { return m_stage; }
+        GLuint GetHandle() const { return m_handle; }
+    private:
+        GLuint m_handle = 0;
+        ERHIShaderStage m_stage;
+    };
+
     class FOpenGLPipelineState : public IRHIPipelineState {
     public:
-        FOpenGLPipelineState(GLuint program);
+        // Legacy constructor for raw program ID (deprecated but keep for compilation if needed)
+        // FOpenGLPipelineState(GLuint program);
+        
+        // New abstract constructor
+        FOpenGLPipelineState(const FPipelineStateDesc& desc);
         virtual ~FOpenGLPipelineState();
 
         virtual void Bind() override;

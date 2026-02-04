@@ -42,8 +42,20 @@ namespace AEngine {
         virtual std::shared_ptr<IRHITexture> GetColorAttachment(uint32_t index) const = 0;
     };
 
+    /// @brief Abstraction for compiled Shader Modules.
+    class IRHIShader : public IRHIResource {
+    public:
+        virtual ERHIShaderStage GetStage() const = 0;
+    };
+
+    /// @brief Descriptor for creating a Pipeline State Object.
+    struct FPipelineStateDesc {
+        std::shared_ptr<IRHIShader> VertexShader;
+        std::shared_ptr<IRHIShader> FragmentShader;
+    };
+
     /// @brief Abstraction for Pipeline State Objects (PSO).
-    /// Currently wraps the Shader Program.
+    /// Wraps the Shader Program and potentially other fixed-function states.
     class IRHIPipelineState : public IRHIResource {
     public:
         virtual void Bind() = 0;

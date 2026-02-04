@@ -67,10 +67,6 @@ add_library(AEngineRuntime STATIC
     src/Engine/Modules/Engine.Renderer/PostProcessPass.cpp
     src/Engine/Modules/Engine.Renderer/StandardPBRMaterial.cpp
     src/Engine/Modules/Engine.Renderer/IBLPreprocessor.cpp
-    src/Engine/Plugins/RHI.OpenGL/OpenGLResources.cpp
-    src/Engine/Plugins/RHI.OpenGL/OpenGLCommandBuffer.cpp
-    src/Engine/Plugins/RHI.OpenGL/OpenGLDevice.cpp
-    src/Engine/Plugins/RHI.OpenGL/OpenGLFramebuffer.cpp
     src/Engine/Modules/Engine.Scene/SceneNode.cpp
     src/Engine/Modules/Engine.Scene/GeometryUtils.cpp
     src/Engine/Modules/Engine.RHI/ShaderCompiler.cpp
@@ -78,7 +74,6 @@ add_library(AEngineRuntime STATIC
 )
 target_link_libraries(AEngineRuntime PUBLIC 
     AEngineKernel
-    RHI.OpenGL # Temporary static link for Phase 2
     glfw
     glad::glad
     imgui::imgui

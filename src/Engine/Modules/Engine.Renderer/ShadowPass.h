@@ -7,7 +7,7 @@ namespace AEngine {
 
     class FShadowPass : public FRenderPass {
     public:
-        FShadowPass(std::shared_ptr<IRHIFramebuffer> framebuffer);
+        FShadowPass(std::shared_ptr<IRHIDevice> device, std::shared_ptr<IRHIFramebuffer> framebuffer);
         virtual ~FShadowPass();
 
         virtual void Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) override;

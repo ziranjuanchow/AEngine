@@ -44,6 +44,11 @@ namespace AEngine {
         virtual void SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) = 0;
         virtual void SetVertexBuffer(std::shared_ptr<IRHIBuffer> buffer) = 0;
         virtual void SetIndexBuffer(std::shared_ptr<IRHIBuffer> buffer) = 0;
+        
+        virtual void SetUniform(uint32_t location, const glm::mat4& value) = 0;
+        virtual void SetUniform(uint32_t location, const glm::vec3& value) = 0;
+        virtual void SetUniform(uint32_t location, int value) = 0;
+        virtual void SetUniform(uint32_t location, float value) = 0;
 
         // --- Draw Commands ---
         virtual void Draw(uint32_t vertexCount, uint32_t instanceCount = 1) = 0;
@@ -72,6 +77,9 @@ namespace AEngine {
         virtual std::shared_ptr<IRHITexture> CreateTexture(uint32_t width, uint32_t height, ERHIPixelFormat format, const void* data = nullptr) = 0;
         virtual std::shared_ptr<IRHIFramebuffer> CreateFramebuffer(const FFramebufferConfig& config) = 0;
         
+        virtual std::shared_ptr<IRHIShader> CreateShader(const std::vector<uint32_t>& spirv, ERHIShaderStage stage) = 0;
+        virtual std::shared_ptr<IRHIPipelineState> CreatePipelineState(const FPipelineStateDesc& desc) = 0;
+
         virtual std::shared_ptr<IRHICommandBuffer> CreateCommandBuffer() = 0;
         
         // --- Execution ---

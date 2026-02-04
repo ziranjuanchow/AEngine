@@ -7,10 +7,11 @@ namespace AEngine {
 
     class FPostProcessPass : public FRenderPass {
     public:
-        FPostProcessPass(std::shared_ptr<IRHITexture> inputTexture);
-        virtual ~FPostProcessPass();
+        FPostProcessPass(std::shared_ptr<IRHIDevice> device);
+        ~FPostProcessPass();
 
         virtual void Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) override;
+        void Execute(IRHICommandBuffer& cmdBuffer, std::shared_ptr<IRHITexture> inputTexture);
         virtual std::string GetName() const override { return "PostProcessPass"; }
 
         void SetExposure(float exposure) { m_exposure = exposure; }

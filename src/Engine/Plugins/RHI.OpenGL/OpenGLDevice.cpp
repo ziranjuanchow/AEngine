@@ -2,9 +2,17 @@
 #include "OpenGLResources.h"
 #include "OpenGLCommandBuffer.h"
 #include "OpenGLFramebuffer.h"
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 namespace AEngine {
+
+    FOpenGLDevice::FOpenGLDevice() {
+        // Assume context is initialized by WindowModule
+    }
+
+    FOpenGLDevice::~FOpenGLDevice() {
+    }
 
     std::shared_ptr<IRHIBuffer> FOpenGLDevice::CreateBuffer(ERHIBufferType type, uint32_t size, ERHIBufferUsage usage, const void* data) {
         return std::make_shared<FOpenGLBuffer>(type, size, usage, data);
@@ -18,24 +26,39 @@ namespace AEngine {
         return std::make_shared<FOpenGLFramebuffer>(config);
     }
 
+    std::shared_ptr<IRHIShader> FOpenGLDevice::CreateShader(const std::vector<uint32_t>& spirv, ERHIShaderStage stage) {
+        return std::make_shared<FOpenGLShader>(spirv, stage);
+    }
+
+    std::shared_ptr<IRHIPipelineState> FOpenGLDevice::CreatePipelineState(const FPipelineStateDesc& desc) {
+        return std::make_shared<FOpenGLPipelineState>(desc);
+    }
+
     std::shared_ptr<IRHICommandBuffer> FOpenGLDevice::CreateCommandBuffer() {
         return std::make_shared<FOpenGLCommandBuffer>();
     }
 
+    void FOpenGLDevice::SubmitCommandBuffer(std::shared_ptr<IRHICommandBuffer> cmdBuffer) {
+        // In OpenGL, commands are executed immediately when called.
+        // But for structure, we simulate submission.
+        if (auto glCmd = std::dynamic_pointer_cast<FOpenGLCommandBuffer>(cmdBuffer)) {
+            // If we had a deferred command list, we would execute it here.
+            // For now, FOpenGLCommandBuffer executes immediately.
+        }
+    }
+
     void FOpenGLDevice::BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, uint32_t width, uint32_t height) {
-        if (!source) return;
-        auto* glFBO = static_cast<FOpenGLFramebuffer*>(source.get());
-        
-        // Use direct state access or bind-to-blit
-        // FBO 0 is the default screen framebuffer
-        glBlitNamedFramebuffer(glFBO->GetHandle(), 0, 
-            0, 0, width, height, 
-            0, 0, width, height, 
-            GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        if (auto glFBO = std::dynamic_pointer_cast<FOpenGLFramebuffer>(source)) {
+            glBlitNamedFramebuffer(glFBO->GetHandle(), 0, 
+                0, 0, width, height, 
+                0, 0, width, height, 
+                GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+        }
     }
 
     void FOpenGLDevice::Present() {
-        // Swap buffers is handled by WindowSubsystem currently, but RHI could take it
+        // SwapBuffers is handled by WindowModule currently.
+        // In full RHI, Device should own the SwapChain.
     }
 
 }

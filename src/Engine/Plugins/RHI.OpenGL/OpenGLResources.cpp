@@ -1,5 +1,6 @@
 #include "OpenGLResources.h"
 #include <cstring>
+#include "Kernel/Core/Log.h"
 
 namespace AEngine {
 
@@ -85,8 +86,46 @@ namespace AEngine {
         glBindTextureUnit(slot, m_handle);
     }
 
-    FOpenGLPipelineState::FOpenGLPipelineState(GLuint program)
-        : m_program(program) {
+    FOpenGLShader::FOpenGLShader(const std::vector<uint32_t>& spirv, ERHIShaderStage stage) 
+        : m_stage(stage) {
+        GLenum glStage = (stage == ERHIShaderStage::Vertex) ? GL_VERTEX_SHADER : 
+                         (stage == ERHIShaderStage::Fragment) ? GL_FRAGMENT_SHADER : GL_COMPUTE_SHADER;
+        
+        m_handle = glCreateShader(glStage);
+        glShaderBinary(1, &m_handle, GL_SHADER_BINARY_FORMAT_SPIR_V, spirv.data(), (GLsizei)(spirv.size() * sizeof(uint32_t)));
+        glSpecializeShader(m_handle, "main", 0, nullptr, nullptr);
+
+        GLint success;
+        glGetShaderiv(m_handle, GL_COMPILE_STATUS, &success);
+        if (!success) {
+            char infoLog[512];
+            glGetShaderInfoLog(m_handle, 512, nullptr, infoLog);
+            AE_CORE_ERROR("SPIR-V Shader Specialization Failed: {0}", infoLog);
+        }
+    }
+
+    FOpenGLShader::~FOpenGLShader() {
+        glDeleteShader(m_handle);
+    }
+
+    FOpenGLPipelineState::FOpenGLPipelineState(const FPipelineStateDesc& desc) {
+        m_program = glCreateProgram();
+        
+        auto vs = std::static_pointer_cast<FOpenGLShader>(desc.VertexShader);
+        auto fs = std::static_pointer_cast<FOpenGLShader>(desc.FragmentShader);
+
+        if (vs) glAttachShader(m_program, vs->GetHandle());
+        if (fs) glAttachShader(m_program, fs->GetHandle());
+
+        glLinkProgram(m_program);
+
+        GLint success;
+        glGetProgramiv(m_program, GL_LINK_STATUS, &success);
+        if (!success) {
+            char infoLog[512];
+            glGetProgramInfoLog(m_program, 512, nullptr, infoLog);
+            AE_CORE_ERROR("Program Linking Failed: {0}", infoLog);
+        }
     }
 
     FOpenGLPipelineState::~FOpenGLPipelineState() {

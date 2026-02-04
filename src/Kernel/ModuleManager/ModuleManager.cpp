@@ -52,17 +52,20 @@ namespace AEngine {
         }
     }
 
-    void FModuleManager::ResolveDependencies(const std::vector<std::string>& enabledModules) {
+    bool FModuleManager::ResolveDependencies(const std::vector<std::string>& enabledModules) {
         AE_CORE_INFO("Resolving dependencies...");
         
         m_activeModuleNames.clear();
         std::set<std::string> visited;
         std::set<std::string> visiting;
+        bool bFailed = false;
 
         std::function<void(const std::string&)> visit = [&](const std::string& name) {
+            if (bFailed) return;
             if (visited.count(name)) return;
             if (visiting.count(name)) {
                 AE_CORE_CRITICAL("Circular dependency detected involving module: {0}", name);
+                bFailed = true;
                 return;
             }
 
@@ -72,13 +75,16 @@ namespace AEngine {
             if (it == m_discoveredModules.end()) {
                 // 如果是 Kernel，我们可以忽略，因为它已经加载了
                 if (name != "AEngine.Kernel" && name != "AEngine.Core") {
-                    AE_CORE_ERROR("Module not found: {0}", name);
+                    AE_CORE_ERROR("Dependency resolution failed: Module not found: {0}", name);
+                    bFailed = true;
                 }
+                visiting.erase(name);
                 return;
             }
 
             for (const auto& dep : it->second.Dependencies) {
                 visit(dep);
+                if (bFailed) return;
             }
 
             visiting.erase(name);
@@ -88,9 +94,17 @@ namespace AEngine {
 
         for (const auto& name : enabledModules) {
             visit(name);
+            if (bFailed) break;
+        }
+
+        if (bFailed) {
+            AE_CORE_CRITICAL("Module resolution failed. Aborting startup.");
+            m_activeModuleNames.clear();
+            return false;
         }
 
         AE_CORE_INFO("Dependency resolution complete. Active modules: {0}", m_activeModuleNames.size());
+        return true;
     }
 
     void FModuleManager::RegisterStaticModule(const std::string& name, ModuleFactory factory) {

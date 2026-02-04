@@ -33,6 +33,10 @@ public:
             return;
         }
         auto device = renderModule->GetDevice();
+        if (!device) {
+            AE_CORE_CRITICAL("RenderModule: Device is null! RHI backend might not be loaded.");
+            return;
+        }
 
         // 2. Load Resources (Fallback)
         uint32_t sphereIndexCount;

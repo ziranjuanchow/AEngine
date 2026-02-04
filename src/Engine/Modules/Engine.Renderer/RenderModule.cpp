@@ -54,11 +54,30 @@ namespace AEngine {
         }
     }
 
-    void URenderModule::Resize(uint32_t width, uint32_t height) {
-        if (!m_device) return;
-        
-        if (m_renderer) {
-            m_renderer->Resize(width, height);
+        void URenderModule::Resize(uint32_t width, uint32_t height) {
+
+            if (!m_device) return;
+
+            
+
+            if (m_renderer) {
+
+                m_renderer->Resize(width, height);
+
+            }
+
         }
+
+    
+
+        std::shared_ptr<IRHIDevice> URenderModule::GetDevice() {
+
+            if (!m_device) TryInitDevice();
+
+            return m_device;
+
+        }
+
     }
-}
+
+    

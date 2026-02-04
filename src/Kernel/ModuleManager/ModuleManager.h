@@ -29,7 +29,11 @@ namespace AEngine {
         AE_API void RegisterStaticModule(const std::string& name, ModuleFactory factory);
 
         AE_API void DiscoverModules(const std::string& rootPath);
-        AE_API void ResolveDependencies(const std::vector<std::string>& enabledModules);
+        /**
+         * @brief 根据项目配置启用特定模块，并递归解析依赖
+         * @return 是否解析成功（所有依赖均存在且无循环依赖）
+         */
+        AE_API bool ResolveDependencies(const std::vector<std::string>& enabledModules);
         AE_API void StartupModules();
         AE_API void ShutdownModules();
         AE_API void UpdateModules(float deltaTime);

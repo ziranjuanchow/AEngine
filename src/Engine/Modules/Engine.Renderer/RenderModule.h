@@ -17,7 +17,7 @@ namespace AEngine {
         
         void Resize(uint32_t width, uint32_t height);
         
-        std::shared_ptr<IRHIDevice> GetDevice() const { return m_device; }
+        std::shared_ptr<IRHIDevice> GetDevice();
 
     private:
         bool TryInitDevice();

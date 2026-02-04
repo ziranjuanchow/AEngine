@@ -31,7 +31,11 @@ namespace AEngine {
         mm.DiscoverModules("src/Engine/Plugins");
         
         // 启用模块：Window, Renderer 以及具体的 RHI 实现 (OpenGL)
-        mm.ResolveDependencies({"Engine.Window", "Engine.Renderer", "RHI.OpenGL"});
+        if (!mm.ResolveDependencies({"Engine.Window", "Engine.Renderer", "RHI.OpenGL"})) {
+            AE_CORE_CRITICAL("Failed to resolve module dependencies! Application cannot start.");
+            m_running = false;
+            return;
+        }
         mm.StartupModules();
     }
 

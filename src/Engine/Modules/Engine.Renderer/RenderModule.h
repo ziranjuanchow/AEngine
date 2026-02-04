@@ -20,6 +20,8 @@ namespace AEngine {
         std::shared_ptr<IRHIDevice> GetDevice() const { return m_device; }
 
     private:
+        bool TryInitDevice();
+
         std::shared_ptr<IRHIDevice> m_device;
         std::unique_ptr<FSceneRenderer> m_renderer;
     };

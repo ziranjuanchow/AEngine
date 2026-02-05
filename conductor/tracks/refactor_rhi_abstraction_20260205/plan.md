@@ -20,7 +20,7 @@
     -   *Note: This task is covered by the existing "IRHICommandBuffer SetBlendFunc Functional Test (Green Phase)" in `tests/RHITests.cpp`, which verifies the method call and parameter passing using a mock.*
     -   在 `tests/RHITests.cpp` 中添加测试，验证新的 `SetBlendFunc` 接口是否正确设置了 OpenGL 的混合函数。
 
-## Phase 3: 抽象 `glBlitFramebuffer`
+## Phase 3: 抽象 `glBlitFramebuffer` [checkpoint: 1b988bd]
 
 -   [x] Task: 扩展 `IRHIDevice` 接口以支持帧缓冲区复制
     -   *Note: `IRHIDevice::BlitFramebuffer` was updated to a more flexible signature. Direct usage of `BlitFramebuffer` was not found in `FSceneRenderer.cpp` or other relevant rendering passes.*

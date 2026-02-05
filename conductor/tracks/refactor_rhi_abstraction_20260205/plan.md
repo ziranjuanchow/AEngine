@@ -1,6 +1,6 @@
 # Track Implementation Plan - RHI 抽象层重构
 
-## Phase 1: 抽象 `glDrawBuffers`
+## Phase 1: 抽象 `glDrawBuffers` [checkpoint: 30083cb]
 
 -   [x] Task: 扩展 `IRHIDevice` 接口以支持设置多渲染目标
     -   在 `src/RHI/IRHIDevice.h` 中添加 `SetDrawBuffers(const std::vector<ERHITextureFormat>& formats)` 或类似接口。

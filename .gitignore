@@ -10,12 +10,4 @@ ipch/
 # vcpkg
 vcpkg_installed/
 
-# Logs
-logs/
 
-# Build artifacts
-bin/
-obj/
-*.exe
-*.pdb
-*.log

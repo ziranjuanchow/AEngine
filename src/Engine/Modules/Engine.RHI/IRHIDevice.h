@@ -25,6 +25,8 @@ namespace AEngine {
         // --- Render State Commands ---
         virtual void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height) = 0;
         virtual void Clear(float r, float g, float b, float a, bool clearDepth = true) = 0;
+        /// @brief Specifies a list of color buffers to be drawn into.
+        virtual void SetDrawBuffers(const std::vector<ERHIPixelFormat>& formats) = 0;
         
         /// @brief Sets Depth Bias (Polygon Offset). Used for Shadow Mapping to prevent acne.
         virtual void SetDepthBias(float constant, float slope) = 0;

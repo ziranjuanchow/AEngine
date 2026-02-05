@@ -27,6 +27,20 @@ namespace AEngine {
         glClear(mask);
     }
 
+    void FOpenGLCommandBuffer::SetDrawBuffers(const std::vector<ERHIPixelFormat>& formats) {
+        if (formats.empty()) {
+            glDrawBuffer(GL_NONE); // Disable color writes
+            glReadBuffer(GL_NONE);
+            return;
+        }
+
+        std::vector<GLenum> drawBuffers(formats.size());
+        for (size_t i = 0; i < formats.size(); ++i) {
+            drawBuffers[i] = GL_COLOR_ATTACHMENT0 + i;
+        }
+        glDrawBuffers(static_cast<GLsizei>(drawBuffers.size()), drawBuffers.data());
+    }
+
     void FOpenGLCommandBuffer::SetDepthBias(float constant, float slope) {
         if (constant != 0.0f || slope != 0.0f) {
             glEnable(GL_POLYGON_OFFSET_FILL);

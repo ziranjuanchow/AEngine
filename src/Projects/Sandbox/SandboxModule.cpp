@@ -9,14 +9,18 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <portable-file-dialogs.h>
 
+#include <iostream>
+
 namespace AEngine {
 
     void SandboxModule::OnStartup() {
+        std::cout << "[SandboxModule] OnStartup Begin" << std::endl;
         AE_CORE_INFO("SandboxModule Starting...");
 
         auto* renderModule = FModuleManager::Get().GetModule<URenderModule>("Engine.Renderer");
         if (!renderModule) {
             AE_CORE_CRITICAL("RenderModule not found!");
+            std::cout << "[SandboxModule] RenderModule Not Found!" << std::endl;
             return;
         }
         
@@ -24,8 +28,10 @@ namespace AEngine {
         m_device = renderModule->GetDevice();
         if (!m_device) {
             AE_CORE_CRITICAL("Failed to initialize RHI Device!");
+            std::cout << "[SandboxModule] RHI Device Init Failed (GetDevice returned null)!" << std::endl;
             return;
         }
+        std::cout << "[SandboxModule] Device Acquired." << std::endl;
 
         // 2. Load Resources (Fallback)
         FGeometryUtils::CreateSphere(*m_device, m_sphereVB, m_sphereIB, m_sphereIndexCount);
@@ -33,15 +39,19 @@ namespace AEngine {
         std::shared_ptr<IRHIBuffer> quadVB, quadIB;
         uint32_t quadIndexCount;
         FGeometryUtils::CreateQuad(*m_device, quadVB, quadIB, quadIndexCount);
+        std::cout << "[SandboxModule] Geometry Created." << std::endl;
 
         // 3. Material Setup
         m_pbrMat = std::make_shared<FStandardPBRMaterial>("StandardPBR");
+        std::cout << "[SandboxModule] Loading Shaders..." << std::endl;
         m_pbrMat->LoadShaders("shaders/StandardPBR.vert", "shaders/StandardPBR.frag");
-        m_pbrMat->SetParameter("albedo", glm::vec3(0.5f, 0.0f, 0.0f));
+        std::cout << "[SandboxModule] Shaders Loaded." << std::endl;
+        m_pbrMat->SetParameter("albedo", glm::vec3(1.0f, 1.0f, 1.0f)); // Changed to white for better visualization
         m_pbrMat->SetParameter("ao", 1.0f);
 
         // 4. Initial Scene Setup
         m_rootNode = std::make_unique<FSceneNode>("SceneRoot");
+        // ... (rest of code)
 
         auto groundNode = std::make_unique<FSceneNode>("Ground");
         {
@@ -87,7 +97,7 @@ namespace AEngine {
                 ((rand() % 100) / 100.0f) * 40.0f - 20.0f
             );
             light.Color = glm::vec3((rand() % 100) / 100.0f, (rand() % 100) / 100.0f, (rand() % 100) / 100.0f);
-            light.Intensity = 20.0f;
+            light.Intensity = 10.0f;
             light.Radius = 10.0f;
 
             auto lightNode = std::make_unique<FSceneNode>("PointLight_" + std::to_string(i));

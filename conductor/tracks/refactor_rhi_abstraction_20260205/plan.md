@@ -14,7 +14,7 @@
 
 ## Phase 2: 抽象 `glBlendFunc`
 
--   [ ] Task: 扩展 `IRHIDevice` 接口以支持设置混合函数
+-   [~] Task: 扩展 `IRHIDevice` 接口以支持设置混合函数
     -   在 `src/RHI/IRHIDevice.h` 中添加 `SetBlendFunc(ERHIBlendFactor sfactor, ERHIBlendFactor dfactor)` 或类似接口。
     -   在 `src/RHI/RHICommandBuffer.h` 中定义 `SetBlendFunc`。
     -   在 `src/RHI/OpenGL/FOpenGLDevice.cpp` 中实现 `SetBlendFunc`，内部调用 `glBlendFunc`。

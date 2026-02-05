@@ -2,6 +2,7 @@
 
 ## 1. Build System & Environment (CRITICAL)
 - **Use `build.bat`**: ALWAYS use `build.bat` for building and testing. The user's system has an environment conflict where MSYS2's CMake often overrides the standard Windows/Visual Studio CMake. `build.bat` is designed to sanitize the PATH and activate the correct Visual Studio 2026 (v18) environment.
+- **系统环境变量修改同意**: AI 代理在执行任何修改**系统全局环境变量**的操作之前，必须征求用户的明确同意。临时的（仅限当前 shell 会话）环境变量修改，AI 代理可自行决定。
 - **Generator**: Prefer **Ninja** (if available in VS environment) or **Visual Studio 17 2022** (pointing to VS 2026/v18 toolchain).
 - **Dependency Manager**: **vcpkg** in Manifest mode (`vcpkg.json`).
 

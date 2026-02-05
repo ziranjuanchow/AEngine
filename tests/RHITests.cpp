@@ -10,6 +10,10 @@ namespace AEngine { // Need to be inside AEngine namespace for ERHIPixelFormat
         bool setDrawBuffersCalled = false;
         std::vector<ERHIPixelFormat> lastFormats;
 
+        bool setBlendFuncCalled = false;
+        ERHIBlendFactor lastSFactor;
+        ERHIBlendFactor lastDFactor;
+
         // Implement all pure virtual functions (dummy implementations)
         void Begin() override {}
         void End() override {}
@@ -17,6 +21,11 @@ namespace AEngine { // Need to be inside AEngine namespace for ERHIPixelFormat
         void Clear(float r, float g, float b, float a, bool clearDepth = true) override {}
         void SetDepthBias(float constant, float slope) override {}
         void SetBlendState(bool enabled) override {}
+        void SetBlendFunc(ERHIBlendFactor sfactor, ERHIBlendFactor dfactor) override { // Added
+            setBlendFuncCalled = true;
+            lastSFactor = sfactor;
+            lastDFactor = dfactor;
+        }
         void SetDepthTest(bool enabled, bool writeEnabled, uint32_t func = 0x0203) override {}
         void SetCullMode(uint32_t mode) override {}
         void SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) override {}
@@ -72,4 +81,21 @@ TEST_CASE("IRHICommandBuffer SetDrawBuffers Functional Test (Green Phase)", "[RH
     // Verify that the method was called and with the correct parameters
     REQUIRE(mockCmdBuffer.setDrawBuffersCalled == true);
     REQUIRE(mockCmdBuffer.lastFormats == formats);
+}
+
+// GREEN PHASE: This test now verifies the IRHICommandBuffer::SetBlendFunc call
+TEST_CASE("IRHICommandBuffer SetBlendFunc Functional Test (Green Phase)", "[RHI][SetBlendFunc]") {
+    using namespace AEngine;
+
+    FMockCommandBuffer mockCmdBuffer;
+    ERHIBlendFactor sfactor = ERHIBlendFactor::SrcAlpha;
+    ERHIBlendFactor dfactor = ERHIBlendFactor::OneMinusSrcAlpha;
+    
+    // Call the method under test on the mock object
+    mockCmdBuffer.SetBlendFunc(sfactor, dfactor); 
+    
+    // Verify that the method was called and with the correct parameters
+    REQUIRE(mockCmdBuffer.setBlendFuncCalled == true);
+    REQUIRE(mockCmdBuffer.lastSFactor == sfactor);
+    REQUIRE(mockCmdBuffer.lastDFactor == dfactor);
 }

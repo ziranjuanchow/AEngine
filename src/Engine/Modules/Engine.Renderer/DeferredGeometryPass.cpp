@@ -43,6 +43,8 @@ namespace AEngine {
         if (!m_gBuffer || !m_pipelineState) return;
 
         m_gBuffer->Bind();
+        // Set draw buffers for G-Buffer MRT
+        cmdBuffer.SetDrawBuffers({ERHIPixelFormat::RGBA8_UNORM, ERHIPixelFormat::RGBA16_FLOAT, ERHIPixelFormat::RGBA8_UNORM});
         cmdBuffer.SetViewport(0, 0, m_gBuffer->GetDepthAttachment()->GetWidth(), m_gBuffer->GetDepthAttachment()->GetHeight());
         cmdBuffer.Clear(0.0f, 0.0f, 0.0f, 1.0f); 
 

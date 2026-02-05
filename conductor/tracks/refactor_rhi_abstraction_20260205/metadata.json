@@ -1,0 +1,8 @@
+{
+  "track_id": "refactor_rhi_abstraction_20260205",
+  "name": "RHI 抽象层重构",
+  "status": "PENDING",
+  "created_date": "2026-02-05",
+  "last_updated": "2026-02-05",
+  "description": "专注于将渲染管线中遗留的原始 OpenGL 调用抽象到 RHI 层，提升渲染器架构的解耦性和可扩展性。"
+}

@@ -15,6 +15,7 @@ namespace AEngine {
         virtual void SetDrawBuffers(const std::vector<ERHIPixelFormat>& formats) override; // Added
         virtual void SetDepthBias(float constant, float slope) override;
         virtual void SetBlendState(bool enabled) override;
+        virtual void SetBlendFunc(ERHIBlendFactor sfactor, ERHIBlendFactor dfactor) override;
         virtual void SetDepthTest(bool enabled, bool writeEnabled, uint32_t func) override;
         virtual void SetCullMode(uint32_t mode) override;
 

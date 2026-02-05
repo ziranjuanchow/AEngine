@@ -5,6 +5,30 @@
 
 namespace AEngine {
 
+    // Helper to convert ERHIBlendFactor to GLenum
+    static GLenum ConvertBlendFactor(ERHIBlendFactor factor) {
+        switch (factor) {
+            case ERHIBlendFactor::Zero: return GL_ZERO;
+            case ERHIBlendFactor::One: return GL_ONE;
+            case ERHIBlendFactor::SrcColor: return GL_SRC_COLOR;
+            case ERHIBlendFactor::OneMinusSrcColor: return GL_ONE_MINUS_SRC_COLOR;
+            case ERHIBlendFactor::DstColor: return GL_DST_COLOR;
+            case ERHIBlendFactor::OneMinusDstColor: return GL_ONE_MINUS_DST_COLOR;
+            case ERHIBlendFactor::SrcAlpha: return GL_SRC_ALPHA;
+            case ERHIBlendFactor::OneMinusSrcAlpha: return GL_ONE_MINUS_SRC_ALPHA;
+            case ERHIBlendFactor::DstAlpha: return GL_DST_ALPHA;
+            case ERHIBlendFactor::OneMinusDstAlpha: return GL_ONE_MINUS_DST_ALPHA;
+            case ERHIBlendFactor::ConstantColor: return GL_CONSTANT_COLOR;
+            case ERHIBlendFactor::OneMinusConstantColor: return GL_ONE_MINUS_CONSTANT_COLOR;
+            case ERHIBlendFactor::ConstantAlpha: return GL_CONSTANT_ALPHA;
+            case ERHIBlendFactor::OneMinusConstantAlpha: return GL_ONE_MINUS_CONSTANT_ALPHA;
+            case ERHIBlendFactor::SrcAlphaSaturate: return GL_SRC_ALPHA_SATURATE;
+            default:
+                AE_CORE_ERROR("Unknown ERHIBlendFactor!");
+                return GL_ONE; // Fallback
+        }
+    }
+
     void FOpenGLCommandBuffer::Begin() {
         // No-op for immediate GL
     }
@@ -53,10 +77,15 @@ namespace AEngine {
     void FOpenGLCommandBuffer::SetBlendState(bool enabled) {
         if (enabled) {
             glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            // Default blend func if not set explicitly via SetBlendFunc
+            // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // This line is now redundant
         } else {
             glDisable(GL_BLEND);
         }
+    }
+
+    void FOpenGLCommandBuffer::SetBlendFunc(ERHIBlendFactor sfactor, ERHIBlendFactor dfactor) {
+        glBlendFunc(ConvertBlendFactor(sfactor), ConvertBlendFactor(dfactor));
     }
 
     void FOpenGLCommandBuffer::SetDepthTest(bool enabled, bool writeEnabled, uint32_t func) {

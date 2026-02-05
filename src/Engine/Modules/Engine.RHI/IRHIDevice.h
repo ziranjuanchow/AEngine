@@ -33,6 +33,8 @@ namespace AEngine {
         
         /// @brief Enables/Disables Blending.
         virtual void SetBlendState(bool enabled) = 0;
+        /// @brief Configures the blending function for combining source and destination pixels.
+        virtual void SetBlendFunc(ERHIBlendFactor sfactor, ERHIBlendFactor dfactor) = 0;
         
         /// @brief Configures Depth Testing and Writing.
         /// @param func Comparison function (default GL_LEQUAL = 0x0203).

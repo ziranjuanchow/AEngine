@@ -4,6 +4,53 @@
 
 namespace AEngine { // Need to be inside AEngine namespace for ERHIPixelFormat
 
+    // Mock/Dummy implementation of IRHIFramebuffer for testing BlitFramebuffer
+    class FMockFramebuffer : public IRHIFramebuffer {
+    public:
+        void Bind() override {}
+        void Unbind() override {}
+        std::shared_ptr<IRHITexture> GetDepthAttachment() const override { return nullptr; }
+        std::shared_ptr<IRHITexture> GetColorAttachment(uint32_t index) const override { return nullptr; }
+    };
+
+    // Mock/Dummy implementation of IRHIDevice for testing BlitFramebuffer
+    class FMockDevice : public IRHIDevice {
+    public:
+        // Member to track calls
+        bool blitFramebufferCalled = false;
+        std::shared_ptr<IRHIFramebuffer> lastSourceFBO;
+        std::shared_ptr<IRHIFramebuffer> lastDestinationFBO;
+        uint32_t lastSrcWidth, lastSrcHeight, lastDstWidth, lastDstHeight;
+        ERHIBlitMask lastMask;
+        ERHIBlitFilter lastFilter;
+
+        // Implement all pure virtual functions (dummy implementations)
+        std::shared_ptr<IRHIBuffer> CreateBuffer(ERHIBufferType type, uint32_t size, ERHIBufferUsage usage, const void* data = nullptr) override { return nullptr; }
+        std::shared_ptr<IRHITexture> CreateTexture(uint32_t width, uint32_t height, ERHIPixelFormat format, const void* data = nullptr) override { return nullptr; }
+        std::shared_ptr<IRHIFramebuffer> CreateFramebuffer(const FFramebufferConfig& config) override { return nullptr; }
+        std::shared_ptr<IRHIShader> CreateShader(const std::vector<uint32_t>& spirv, ERHIShaderStage stage) override { return nullptr; }
+        std::shared_ptr<IRHIPipelineState> CreatePipelineState(const FPipelineStateDesc& desc) override { return nullptr; }
+        std::shared_ptr<IRHICommandBuffer> CreateCommandBuffer() override { return nullptr; }
+        void SubmitCommandBuffer(std::shared_ptr<IRHICommandBuffer> cmdBuffer) override {}
+        void Present() override {}
+        
+        // Actual implementation for the method under test
+        void BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, std::shared_ptr<IRHIFramebuffer> destination, 
+                             uint32_t srcWidth, uint32_t srcHeight, uint32_t dstWidth, uint32_t dstHeight, 
+                             ERHIBlitMask mask, ERHIBlitFilter filter) override {
+            blitFramebufferCalled = true;
+            lastSourceFBO = source;
+            lastDestinationFBO = destination;
+            lastSrcWidth = srcWidth;
+            lastSrcHeight = srcHeight;
+            lastDstWidth = dstWidth;
+            lastDstHeight = dstHeight;
+            lastMask = mask;
+            lastFilter = filter;
+        }
+    };
+
+
     // Mock/Dummy implementation of IRHICommandBuffer for testing
     class FMockCommandBuffer : public IRHICommandBuffer {
     public:
@@ -98,4 +145,32 @@ TEST_CASE("IRHICommandBuffer SetBlendFunc Functional Test (Green Phase)", "[RHI]
     REQUIRE(mockCmdBuffer.setBlendFuncCalled == true);
     REQUIRE(mockCmdBuffer.lastSFactor == sfactor);
     REQUIRE(mockCmdBuffer.lastDFactor == dfactor);
+}
+
+// GREEN PHASE: This test now verifies the IRHIDevice::BlitFramebuffer call
+TEST_CASE("IRHIDevice BlitFramebuffer Functional Test (Green Phase)", "[RHI][BlitFramebuffer]") {
+    using namespace AEngine;
+
+    FMockDevice mockDevice;
+    std::shared_ptr<IRHIFramebuffer> srcFBO = std::make_shared<FMockFramebuffer>();
+    std::shared_ptr<IRHIFramebuffer> dstFBO = std::make_shared<FMockFramebuffer>();
+
+    uint32_t srcWidth = 100, srcHeight = 100;
+    uint32_t dstWidth = 200, dstHeight = 200;
+    ERHIBlitMask mask = ERHIBlitMask::ColorBuffer;
+    ERHIBlitFilter filter = ERHIBlitFilter::Nearest;
+    
+    // Call the method under test on the mock object
+    mockDevice.BlitFramebuffer(srcFBO, dstFBO, srcWidth, srcHeight, dstWidth, dstHeight, mask, filter); 
+    
+    // Verify that the method was called and with the correct parameters
+    REQUIRE(mockDevice.blitFramebufferCalled == true);
+    REQUIRE(mockDevice.lastSourceFBO == srcFBO);
+    REQUIRE(mockDevice.lastDestinationFBO == dstFBO);
+    REQUIRE(mockDevice.lastSrcWidth == srcWidth);
+    REQUIRE(mockDevice.lastSrcHeight == srcHeight);
+    REQUIRE(mockDevice.lastDstWidth == dstWidth);
+    REQUIRE(mockDevice.lastDstHeight == dstHeight);
+    REQUIRE(mockDevice.lastMask == mask);
+    REQUIRE(mockDevice.lastFilter == filter);
 }

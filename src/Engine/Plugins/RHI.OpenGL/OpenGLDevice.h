@@ -19,7 +19,9 @@ namespace AEngine {
         virtual std::shared_ptr<IRHICommandBuffer> CreateCommandBuffer() override;
         
         virtual void SubmitCommandBuffer(std::shared_ptr<IRHICommandBuffer> cmdBuffer) override;
-        virtual void BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, uint32_t width, uint32_t height) override;
+        virtual void BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, std::shared_ptr<IRHIFramebuffer> destination, 
+                                     uint32_t srcWidth, uint32_t srcHeight, uint32_t dstWidth, uint32_t dstHeight, 
+                                     ERHIBlitMask mask, ERHIBlitFilter filter) override;
         virtual void Present() override;
     };
 

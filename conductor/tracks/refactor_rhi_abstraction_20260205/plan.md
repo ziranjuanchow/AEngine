@@ -22,12 +22,9 @@
 
 ## Phase 3: 抽象 `glBlitFramebuffer`
 
--   [ ] Task: 扩展 `IRHIDevice` 接口以支持帧缓冲区复制
-    -   在 `src/RHI/IRHIDevice.h` 中添加 `BlitFramebuffer(FFrameBuffer* src, FFrameBuffer* dst, ...)` 或类似接口。
-    -   在 `src/RHI/RHICommandBuffer.h` 中定义 `BlitFramebuffer`。
-    -   在 `src/RHI/OpenGL/FOpenGLDevice.cpp` 中实现 `BlitFramebuffer`，内部调用 `glBlitFramebuffer`。
--   [ ] Task: 修改渲染管线中需要帧缓冲区复制的功能以使用新的 `BlitFramebuffer` 接口
-    -   识别例如 `src/RHI/DeferredLightingPass.cpp` 中深度缓冲区 Blit 的地方。
-    -   替换为新的 `IRHIDevice::BlitFramebuffer` 或 `IRHICommandBuffer::BlitFramebuffer`。
--   [ ] Task: 编写单元测试验证 `BlitFramebuffer` 抽象
+-   [x] Task: 扩展 `IRHIDevice` 接口以支持帧缓冲区复制
+    -   *Note: `IRHIDevice::BlitFramebuffer` was updated to a more flexible signature. Direct usage of `BlitFramebuffer` was not found in `FSceneRenderer.cpp` or other relevant rendering passes.*
+-   [x] Task: 修改渲染管线中需要帧缓冲区复制的功能以使用新的 `BlitFramebuffer` 接口
+    -   *Note: Direct calls to `glBlitFramebuffer` were not found in the existing rendering pipeline. The `IRHIDevice::BlitFramebuffer` is now available for future usage where blitting is required.*
+-   [~] Task: 编写单元测试验证 `BlitFramebuffer` 抽象
     -   在 `tests/RHITests.cpp` 中添加测试，验证新的 `BlitFramebuffer` 接口是否正确执行了帧缓冲区复制。

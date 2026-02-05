@@ -53,6 +53,20 @@ namespace AEngine {
         SrcAlphaSaturate                // GL_SRC_ALPHA_SATURATE
     };
 
+    /// @brief Mask for specifying which buffers to blit (color, depth, stencil).
+    enum class ERHIBlitMask {
+        ColorBuffer = 0x00004000, // GL_COLOR_BUFFER_BIT
+        DepthBuffer = 0x00000100, // GL_DEPTH_BUFFER_BIT
+        StencilBuffer = 0x00000400, // GL_STENCIL_BUFFER_BIT
+        All = ColorBuffer | DepthBuffer | StencilBuffer
+    };
+
+    /// @brief Filter for blitting (nearest, linear).
+    enum class ERHIBlitFilter {
+        Nearest = 0x2600, // GL_NEAREST
+        Linear = 0x2601   // GL_LINEAR
+    };
+
     /// @brief Buffer Usage Hint (for driver optimization).
     enum class ERHIBufferUsage {
         /// @brief Data set once, rarely changed. (GL_STATIC_DRAW)

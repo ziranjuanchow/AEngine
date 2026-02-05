@@ -5,7 +5,25 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-namespace AEngine {
+// Helper to convert ERHIBlitMask to GLbitfield
+static GLbitfield ConvertBlitMask(AEngine::ERHIBlitMask mask) {
+    GLbitfield glMask = 0;
+    if (static_cast<uint32_t>(mask) & static_cast<uint32_t>(AEngine::ERHIBlitMask::ColorBuffer)) glMask |= GL_COLOR_BUFFER_BIT;
+    if (static_cast<uint32_t>(mask) & static_cast<uint32_t>(AEngine::ERHIBlitMask::DepthBuffer)) glMask |= GL_DEPTH_BUFFER_BIT;
+    if (static_cast<uint32_t>(mask) & static_cast<uint32_t>(AEngine::ERHIBlitMask::StencilBuffer)) glMask |= GL_STENCIL_BUFFER_BIT;
+    return glMask;
+}
+
+// Helper to convert ERHIBlitFilter to GLenum
+static GLenum ConvertBlitFilter(AEngine::ERHIBlitFilter filter) {
+    switch (filter) {
+        case AEngine::ERHIBlitFilter::Nearest: return GL_NEAREST;
+        case AEngine::ERHIBlitFilter::Linear: return GL_LINEAR;
+        default: return GL_NEAREST; // Fallback
+    }
+}
+
+namespace AEngine { // Reopen namespace for FOpenGLDevice methods
 
     FOpenGLDevice::FOpenGLDevice() {
         // Assume context is initialized by WindowModule
@@ -47,13 +65,17 @@ namespace AEngine {
         }
     }
 
-    void FOpenGLDevice::BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, uint32_t width, uint32_t height) {
-        if (auto glFBO = std::dynamic_pointer_cast<FOpenGLFramebuffer>(source)) {
-            glBlitNamedFramebuffer(glFBO->GetHandle(), 0, 
-                0, 0, width, height, 
-                0, 0, width, height, 
-                GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-        }
+    void FOpenGLDevice::BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, std::shared_ptr<IRHIFramebuffer> destination, 
+                                     uint32_t srcWidth, uint32_t srcHeight, uint32_t dstWidth, uint32_t dstHeight, 
+                                     ERHIBlitMask mask, ERHIBlitFilter filter) {
+        GLuint srcFBO = source ? static_cast<FOpenGLFramebuffer*>(source.get())->GetHandle() : 0;
+        GLuint dstFBO = destination ? static_cast<FOpenGLFramebuffer*>(destination.get())->GetHandle() : 0;
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, srcFBO);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, dstFBO);
+        glBlitFramebuffer(0, 0, srcWidth, srcHeight, 0, 0, dstWidth, dstHeight, ConvertBlitMask(mask), ConvertBlitFilter(filter));
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0); // Unbind FBOs
     }
 
     void FOpenGLDevice::Present() {
@@ -61,4 +83,4 @@ namespace AEngine {
         // In full RHI, Device should own the SwapChain.
     }
 
-}
+} // namespace AEngine

@@ -91,7 +91,17 @@ namespace AEngine {
         
         /// @brief Blits (Copies) one framebuffer to another.
         /// Commonly used to copy Depth Buffer from G-Buffer to Forward Pass FBO.
-        virtual void BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, uint32_t width, uint32_t height) = 0;
+        /// @param source The source framebuffer to blit from. If null, blits from default framebuffer.
+        /// @param destination The destination framebuffer to blit to. If null, blits to default framebuffer.
+        /// @param srcWidth Width of the source region.
+        /// @param srcHeight Height of the source region.
+        /// @param dstWidth Width of the destination region.
+        /// @param dstHeight Height of the destination region.
+        /// @param mask Which buffers to blit (color, depth, stencil).
+        /// @param filter Interpolation filter for blitting (nearest or linear).
+        virtual void BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, std::shared_ptr<IRHIFramebuffer> destination, 
+                                     uint32_t srcWidth, uint32_t srcHeight, uint32_t dstWidth, uint32_t dstHeight, 
+                                     ERHIBlitMask mask, ERHIBlitFilter filter) = 0;
         
         /// @brief Swaps the back buffer (VSync).
         virtual void Present() = 0;

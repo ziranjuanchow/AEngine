@@ -8,7 +8,7 @@
 -   [x] Task: 编写单元测试验证 `SetDrawBuffers` 抽象
     -   *Note: This task is covered by the existing "IRHICommandBuffer SetDrawBuffers Functional Test (Green Phase)" in `tests/RHITests.cpp`, which verifies the method call and parameter passing using a mock. Due to limitations in headless OpenGL testing, this mock-based approach is sufficient for abstract interface verification.*
 
-## Phase 2: 抽象 `glBlendFunc`
+## Phase 2: 抽象 `glBlendFunc` [checkpoint: 67279f0]
 
 -   [x] Task: 扩展 `IRHIDevice` 接口以支持设置混合函数
     -   在 `src/RHI/IRHIDevice.h` 中添加 `SetBlendFunc(ERHIBlendFactor sfactor, ERHIBlendFactor dfactor)` 或类似接口。

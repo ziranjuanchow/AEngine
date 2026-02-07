@@ -6,7 +6,8 @@
 
 namespace AEngine {
 
-    FPostProcessPass::FPostProcessPass(std::shared_ptr<IRHIDevice> device) {
+    FPostProcessPass::FPostProcessPass(std::shared_ptr<IRHIDevice> device)
+        : m_device(device) {
         auto readFile = [](const std::string& path) {
             std::ifstream file(path);
             std::stringstream ss;
@@ -43,13 +44,29 @@ namespace AEngine {
     }
 
     void FPostProcessPass::Execute(IRHICommandBuffer& cmdBuffer, std::shared_ptr<IRHITexture> inputTexture) {
-        if (!m_pipelineState || !inputTexture) return;
+        if (!m_pipelineState || !inputTexture || !m_device) return;
+
+        if (m_outputFramebuffer) {
+            m_outputFramebuffer->Bind();
+        } else {
+            m_device->BindDefaultFramebuffer();
+        }
+        cmdBuffer.SetViewport(0, 0, m_width, m_height);
+        cmdBuffer.Clear(0.0f, 0.0f, 0.0f, 1.0f, true);
+        cmdBuffer.SetDepthTest(false, false, ERHICompareFunc::LessEqual);
+        cmdBuffer.SetCullMode(ERHICullMode::None);
+        cmdBuffer.SetBlendState(false);
 
         inputTexture->Bind(0);
 
         cmdBuffer.SetPipelineState(m_pipelineState);
         cmdBuffer.SetUniform(0, 0); 
+        cmdBuffer.SetUniform(1, 1.0f); // Default Exposure
         cmdBuffer.Draw(3);
+
+        if (m_outputFramebuffer) {
+            m_outputFramebuffer->Unbind();
+        }
     }
 
 }

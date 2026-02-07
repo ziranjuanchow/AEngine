@@ -65,6 +65,7 @@ namespace AEngine {
         // 5. Post Process Pass
         auto postPassPtr = std::make_unique<FPostProcessPass>(m_device);
         postPassPtr->SetInputTexture(m_hdrLightingFBO->GetColorAttachment(0));
+        postPassPtr->SetResolution(width, height);
         m_postProcessPass = postPassPtr.get();
         m_renderGraph->AddPass(std::move(postPassPtr));
     }
@@ -105,6 +106,7 @@ namespace AEngine {
         
         if (m_postProcessPass) {
             m_postProcessPass->SetInputTexture(m_hdrLightingFBO->GetColorAttachment(0));
+            m_postProcessPass->SetResolution(width, height);
         }
         
         if (m_lightingPass) {
@@ -158,16 +160,7 @@ namespace AEngine {
         ResetRenderState(*m_cmdBuffer);
         passes[3]->Execute(*m_cmdBuffer, context, forwardList);
 
-        // ---------------------------------------------------------
-        // Final: Post Process -> Screen
-        // ---------------------------------------------------------
-        m_device->BindDefaultFramebuffer();
-        m_cmdBuffer->SetViewport(0, 0, m_width, m_height);
-        m_cmdBuffer->Clear(0.0f, 0.0f, 0.0f, 1.0f, true);
-        m_cmdBuffer->SetDepthTest(false, false, ERHICompareFunc::LessEqual);
-        m_cmdBuffer->SetCullMode(ERHICullMode::None);
-        m_cmdBuffer->SetBlendState(false);
-
+        // Final: Post Process -> Screen (target/state handled by pass)
         if (m_postProcessPass) {
             m_postProcessPass->Execute(*m_cmdBuffer, context, deferredList);
         }

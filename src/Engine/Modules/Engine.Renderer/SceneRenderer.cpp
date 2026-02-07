@@ -148,12 +148,8 @@ namespace AEngine {
         ResetRenderState(*m_cmdBuffer);
         passes[0]->Execute(*m_cmdBuffer, context, deferredList);
 
-        m_gBuffer->Bind();
-        m_cmdBuffer->SetViewport(0, 0, m_width, m_height);
-        m_cmdBuffer->Clear(0.0f, 0.0f, 0.0f, 1.0f); 
         ResetRenderState(*m_cmdBuffer); 
         passes[1]->Execute(*m_cmdBuffer, context, deferredList);
-        m_gBuffer->Unbind();
 
         passes[2]->Execute(*m_cmdBuffer, context, deferredList);
 

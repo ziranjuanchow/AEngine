@@ -37,12 +37,11 @@ namespace AEngine {
         virtual void SetBlendFunc(ERHIBlendFactor sfactor, ERHIBlendFactor dfactor) = 0;
         
         /// @brief Configures Depth Testing and Writing.
-        /// @param func Comparison function (default GL_LEQUAL = 0x0203).
-        virtual void SetDepthTest(bool enabled, bool writeEnabled, uint32_t func = 0x0203) = 0; 
+        /// @param func Depth comparison function (default LessEqual).
+        virtual void SetDepthTest(bool enabled, bool writeEnabled, ERHICompareFunc func = ERHICompareFunc::LessEqual) = 0; 
         
         /// @brief Sets Face Culling Mode.
-        /// @param mode GL_BACK (0x0405) or GL_FRONT (0x0404).
-        virtual void SetCullMode(uint32_t mode) = 0; 
+        virtual void SetCullMode(ERHICullMode mode) = 0; 
         
         // --- Binding Commands ---
         virtual void SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) = 0;
@@ -50,6 +49,7 @@ namespace AEngine {
         virtual void SetIndexBuffer(std::shared_ptr<IRHIBuffer> buffer) = 0;
         
         virtual void SetUniform(uint32_t location, const glm::mat4& value) = 0;
+        virtual void SetUniform(uint32_t location, const glm::vec2& value) = 0;
         virtual void SetUniform(uint32_t location, const glm::vec3& value) = 0;
         virtual void SetUniform(uint32_t location, int value) = 0;
         virtual void SetUniform(uint32_t location, float value) = 0;
@@ -88,6 +88,9 @@ namespace AEngine {
         
         // --- Execution ---
         virtual void SubmitCommandBuffer(std::shared_ptr<IRHICommandBuffer> cmdBuffer) = 0;
+
+        /// @brief Binds the default backbuffer framebuffer for rendering to screen.
+        virtual void BindDefaultFramebuffer() = 0;
         
         /// @brief Blits (Copies) one framebuffer to another.
         /// Commonly used to copy Depth Buffer from G-Buffer to Forward Pass FBO.

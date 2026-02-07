@@ -7,7 +7,6 @@
 #include "StandardPBRMaterial.h"
 #include "Kernel/Core/Log.h"
 #include "Engine.Scene/GeometryUtils.h"
-#include <glad/glad.h>
 
 namespace AEngine {
 
@@ -52,12 +51,15 @@ namespace AEngine {
         // Set geometry data for light volumes
         m_lightingPass->SetSphereGeometry(sphereVB, sphereIB, sphereIndexCount);
         m_lightingPass->SetResolution(width, height);
+        m_lightingPass->SetOutputTarget(m_hdrLightingFBO);
         
         m_renderGraph->AddPass(std::move(lightPassPtr));
 
         // 4. Forward Pass
         auto forwardPassPtr = std::make_unique<FForwardLitPass>();
         m_forwardPass = forwardPassPtr.get();
+        m_forwardPass->SetOutputTarget(m_hdrForwardFBO);
+        m_forwardPass->SetResolution(width, height);
         m_renderGraph->AddPass(std::move(forwardPassPtr));
 
         // 5. Post Process Pass
@@ -107,24 +109,19 @@ namespace AEngine {
         
         if (m_lightingPass) {
             m_lightingPass->SetResolution(width, height);
+            m_lightingPass->SetOutputTarget(m_hdrLightingFBO);
+        }
+
+        if (m_forwardPass) {
+            m_forwardPass->SetResolution(width, height);
+            m_forwardPass->SetOutputTarget(m_hdrForwardFBO);
         }
     }
 
-    static void UnbindAllTextures() {
-        for (int i = 0; i < 8; ++i) {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, 0);
-        }
-    }
-
-    static void ResetRenderState() {
-        glDisable(GL_BLEND);
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_TRUE);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-        glFrontFace(GL_CCW);
+    static void ResetRenderState(IRHICommandBuffer& cmdBuffer) {
+        cmdBuffer.SetBlendState(false);
+        cmdBuffer.SetDepthTest(true, true, ERHICompareFunc::LessEqual);
+        cmdBuffer.SetCullMode(ERHICullMode::Back);
     }
 
     void FSceneRenderer::Render(const FRenderContext& context, 
@@ -146,50 +143,37 @@ namespace AEngine {
 
         std::vector<FRenderPass*> passes = m_renderGraph->GetPasses();
 
-        ResetRenderState();
+        ResetRenderState(*m_cmdBuffer);
         passes[0]->Execute(*m_cmdBuffer, context, deferredList);
-        UnbindAllTextures();
 
         m_gBuffer->Bind();
         m_cmdBuffer->SetViewport(0, 0, m_width, m_height);
         m_cmdBuffer->Clear(0.0f, 0.0f, 0.0f, 1.0f); 
-        ResetRenderState(); 
+        ResetRenderState(*m_cmdBuffer); 
         passes[1]->Execute(*m_cmdBuffer, context, deferredList);
         m_gBuffer->Unbind();
-        UnbindAllTextures();
 
-        m_hdrLightingFBO->Bind();
-        m_cmdBuffer->SetViewport(0, 0, m_width, m_height);
-        m_cmdBuffer->Clear(0.0f, 0.0f, 0.0f, 1.0f, false);
         passes[2]->Execute(*m_cmdBuffer, context, deferredList);
-        m_hdrLightingFBO->Unbind();
-        UnbindAllTextures();
 
-        m_hdrForwardFBO->Bind();
-        m_cmdBuffer->SetViewport(0, 0, m_width, m_height);
-        ResetRenderState();
+        ResetRenderState(*m_cmdBuffer);
         passes[3]->Execute(*m_cmdBuffer, context, forwardList);
-        m_hdrForwardFBO->Unbind();
-        UnbindAllTextures();
 
         // ---------------------------------------------------------
         // Final: Post Process -> Screen
         // ---------------------------------------------------------
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0, 0, m_width, m_height);
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); // Ensure clear color is black
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        
-        // Disable depth test for fullscreen quad pass
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
+        m_device->BindDefaultFramebuffer();
+        m_cmdBuffer->SetViewport(0, 0, m_width, m_height);
+        m_cmdBuffer->Clear(0.0f, 0.0f, 0.0f, 1.0f, true);
+        m_cmdBuffer->SetDepthTest(false, false, ERHICompareFunc::LessEqual);
+        m_cmdBuffer->SetCullMode(ERHICullMode::None);
+        m_cmdBuffer->SetBlendState(false);
 
         if (m_postProcessPass) {
             m_postProcessPass->Execute(*m_cmdBuffer, context, deferredList);
         }
-        UnbindAllTextures();
 
         m_cmdBuffer->End();
+        m_device->SubmitCommandBuffer(m_cmdBuffer);
     }
 
     void FSceneRenderer::Shutdown() {

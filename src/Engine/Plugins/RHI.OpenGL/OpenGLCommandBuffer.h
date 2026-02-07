@@ -16,14 +16,15 @@ namespace AEngine {
         virtual void SetDepthBias(float constant, float slope) override;
         virtual void SetBlendState(bool enabled) override;
         virtual void SetBlendFunc(ERHIBlendFactor sfactor, ERHIBlendFactor dfactor) override;
-        virtual void SetDepthTest(bool enabled, bool writeEnabled, uint32_t func) override;
-        virtual void SetCullMode(uint32_t mode) override;
+        virtual void SetDepthTest(bool enabled, bool writeEnabled, ERHICompareFunc func) override;
+        virtual void SetCullMode(ERHICullMode mode) override;
 
         virtual void SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) override;
         virtual void SetVertexBuffer(std::shared_ptr<IRHIBuffer> buffer) override;
         virtual void SetIndexBuffer(std::shared_ptr<IRHIBuffer> buffer) override;
         
         virtual void SetUniform(uint32_t location, const glm::mat4& value) override;
+        virtual void SetUniform(uint32_t location, const glm::vec2& value) override;
         virtual void SetUniform(uint32_t location, const glm::vec3& value) override;
         virtual void SetUniform(uint32_t location, int value) override;
         virtual void SetUniform(uint32_t location, float value) override;

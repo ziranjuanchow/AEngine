@@ -5,6 +5,7 @@
 #include <sstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <algorithm>
 
 namespace AEngine {
 
@@ -37,71 +38,77 @@ namespace AEngine {
             AE_CORE_ERROR("Failed to compile DeferredLighting shaders.");
         }
 
-        // Fullscreen Quad (created abstractly)
-        uint32_t count;
-        // FGeometryUtils::CreateQuad(*device, m_quadVB, m_quadIB, count);
-        // FIXME: Need to call static util, but it needs device.
-        // We assume caller handles quad creation or we do it here.
-        // For simplicity, we assume Quad is provided or created here using device methods.
-        // Wait, GeometryUtils::CreateQuad accepts IRHIDevice reference.
-        // So we just need to include GeometryUtils.
     }
 
     FDeferredLightingPass::~FDeferredLightingPass() {}
 
     void FDeferredLightingPass::Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) {
-        if (!m_pipelineState) return;
+        if (!m_pipelineState || !m_gBuffer || !m_sphereVB || !m_sphereIB || m_sphereIndexCount == 0) {
+            return;
+        }
 
-        // Note: Output to default framebuffer (0) or another target?
-        // Usually Lighting pass writes to a lighting buffer or backbuffer.
-        // Here we assume backbuffer (0) or let the command buffer state decide (if bound externally).
-        
-        // Bind G-Buffer Textures
-        if (m_gBuffer) {
-            // Color0 (Albedo) -> Slot 0
-            if (auto albedo = m_gBuffer->GetColorAttachment(0)) albedo->Bind(0);
-            // Color1 (Normal) -> Slot 1
-            if (auto normal = m_gBuffer->GetColorAttachment(1)) normal->Bind(1);
-            // Depth -> Slot 2 (for position reconstruction)
-            if (auto depth = m_gBuffer->GetDepthAttachment()) depth->Bind(2);
+        if (m_outputFramebuffer) {
+            m_outputFramebuffer->Bind();
+            cmdBuffer.SetViewport(0, 0, m_width, m_height);
+            cmdBuffer.Clear(0.0f, 0.0f, 0.0f, 1.0f, false);
         }
-        
-        // Bind ShadowMap -> Slot 3
-        if (m_shadowMap) {
-            m_shadowMap->Bind(3);
+
+        // Additive blending accumulates one light volume draw call per light.
+        cmdBuffer.SetBlendState(true);
+        cmdBuffer.SetBlendFunc(ERHIBlendFactor::One, ERHIBlendFactor::One);
+        cmdBuffer.SetDepthTest(true, false, ERHICompareFunc::LessEqual);
+        cmdBuffer.SetCullMode(ERHICullMode::Front);
+
+        auto albedoRough = m_gBuffer->GetColorAttachment(0);
+        auto normalMetal = m_gBuffer->GetColorAttachment(1);
+        auto depth = m_gBuffer->GetDepthAttachment();
+        if (!albedoRough || !normalMetal || !depth) {
+            return;
         }
+        albedoRough->Bind(0);
+        normalMetal->Bind(1);
+        depth->Bind(2);
 
         cmdBuffer.SetPipelineState(m_pipelineState);
+        cmdBuffer.SetVertexBuffer(m_sphereVB);
+        cmdBuffer.SetIndexBuffer(m_sphereIB);
 
-        // Upload Uniforms (using SetUniform abstraction)
-        cmdBuffer.SetUniform(0, 0); // gAlbedoSpec
-        cmdBuffer.SetUniform(1, 1); // gNormal
-        cmdBuffer.SetUniform(2, 2); // gDepth
-        cmdBuffer.SetUniform(3, 3); // shadowMap
+        const glm::mat4 invVP = glm::inverse(context.ProjectionMatrix * context.ViewMatrix);
+        cmdBuffer.SetUniform(20, 0); // gAlbedoRough
+        cmdBuffer.SetUniform(21, 1); // gNormalMetal
+        cmdBuffer.SetUniform(22, 2); // gDepth
+        cmdBuffer.SetUniform(23, invVP);
+        cmdBuffer.SetUniform(24, context.CameraPosition);
+        cmdBuffer.SetUniform(25, glm::vec2(static_cast<float>(m_width), static_cast<float>(m_height)));
+        cmdBuffer.SetUniform(30, context.LightPosition);
+        cmdBuffer.SetUniform(31, context.LightColor);
 
-        cmdBuffer.SetUniform(4, context.CameraPosition);
-        cmdBuffer.SetUniform(5, context.LightPosition);
-        cmdBuffer.SetUniform(6, context.LightColor);
-        cmdBuffer.SetUniform(7, context.LightSpaceMatrix);
+        const auto emitLight = [&](const glm::vec3& position, const glm::vec3& color, float radius, float intensity) {
+            const glm::mat4 model = glm::translate(glm::mat4(1.0f), position) *
+                                    glm::scale(glm::mat4(1.0f), glm::vec3(radius));
+            cmdBuffer.SetUniform(0, model);
+            cmdBuffer.SetUniform(1, context.ViewMatrix);
+            cmdBuffer.SetUniform(2, context.ProjectionMatrix);
+            cmdBuffer.SetUniform(26, position);
+            cmdBuffer.SetUniform(27, color);
+            cmdBuffer.SetUniform(28, radius);
+            cmdBuffer.SetUniform(29, intensity);
+            cmdBuffer.DrawIndexed(m_sphereIndexCount);
+        };
 
-        // Point Lights loop (simplified)
-        for (size_t i = 0; i < std::min((size_t)32, context.PointLights.size()); ++i) {
-            std::string base = "pointLights[" + std::to_string(i) + "]";
-            // IRHICommandBuffer doesn't support string uniforms yet.
-            // This would fail. We need glUniform here or expand IRHICommandBuffer.
-            // For now, we accept glUniform logic from previous implementation if we include glad.
-            // But we removed glad include. So we are stuck.
-            
-            // To fix this properly: CommandBuffer needs SetUniform(string, ...)
-            // Or we assume fixed locations.
+        if (!context.PointLights.empty()) {
+            const size_t maxLights = std::min<size_t>(32, context.PointLights.size());
+            for (size_t i = 0; i < maxLights; ++i) {
+                const auto& light = context.PointLights[i];
+                emitLight(light.Position, light.Color, light.Radius, light.Intensity);
+            }
+        } else {
+            emitLight(context.LightPosition, context.LightColor, 10.0f, 1.0f);
         }
 
-        // Draw Quad
-        // cmdBuffer.SetVertexBuffer(m_quadVB);
-        // cmdBuffer.SetIndexBuffer(m_quadIB);
-        // cmdBuffer.DrawIndexed(6);
-        // Temporary: assume quad drawing logic
-        cmdBuffer.Draw(6); // DrawArrays for fullscreen triangle optimization?
+        if (m_outputFramebuffer) {
+            m_outputFramebuffer->Unbind();
+        }
     }
 
 }

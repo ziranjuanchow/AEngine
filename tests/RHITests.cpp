@@ -32,6 +32,7 @@ namespace AEngine { // Need to be inside AEngine namespace for ERHIPixelFormat
         std::shared_ptr<IRHIPipelineState> CreatePipelineState(const FPipelineStateDesc& desc) override { return nullptr; }
         std::shared_ptr<IRHICommandBuffer> CreateCommandBuffer() override { return nullptr; }
         void SubmitCommandBuffer(std::shared_ptr<IRHICommandBuffer> cmdBuffer) override {}
+        void BindDefaultFramebuffer() override {}
         void Present() override {}
         
         // Actual implementation for the method under test
@@ -61,6 +62,14 @@ namespace AEngine { // Need to be inside AEngine namespace for ERHIPixelFormat
         ERHIBlendFactor lastSFactor;
         ERHIBlendFactor lastDFactor;
 
+        bool setDepthTestCalled = false;
+        bool lastDepthTestEnabled = false;
+        bool lastDepthWriteEnabled = false;
+        ERHICompareFunc lastCompareFunc = ERHICompareFunc::LessEqual;
+
+        bool setCullModeCalled = false;
+        ERHICullMode lastCullMode = ERHICullMode::Back;
+
         // Implement all pure virtual functions (dummy implementations)
         void Begin() override {}
         void End() override {}
@@ -73,12 +82,21 @@ namespace AEngine { // Need to be inside AEngine namespace for ERHIPixelFormat
             lastSFactor = sfactor;
             lastDFactor = dfactor;
         }
-        void SetDepthTest(bool enabled, bool writeEnabled, uint32_t func = 0x0203) override {}
-        void SetCullMode(uint32_t mode) override {}
+        void SetDepthTest(bool enabled, bool writeEnabled, ERHICompareFunc func = ERHICompareFunc::LessEqual) override {
+            setDepthTestCalled = true;
+            lastDepthTestEnabled = enabled;
+            lastDepthWriteEnabled = writeEnabled;
+            lastCompareFunc = func;
+        }
+        void SetCullMode(ERHICullMode mode) override {
+            setCullModeCalled = true;
+            lastCullMode = mode;
+        }
         void SetPipelineState(std::shared_ptr<IRHIPipelineState> pso) override {}
         void SetVertexBuffer(std::shared_ptr<IRHIBuffer> buffer) override {}
         void SetIndexBuffer(std::shared_ptr<IRHIBuffer> buffer) override {}
         void SetUniform(uint32_t location, const glm::mat4& value) override {}
+        void SetUniform(uint32_t location, const glm::vec2& value) override {}
         void SetUniform(uint32_t location, const glm::vec3& value) override {}
         void SetUniform(uint32_t location, int value) override {}
         void SetUniform(uint32_t location, float value) override {}
@@ -145,6 +163,22 @@ TEST_CASE("IRHICommandBuffer SetBlendFunc Functional Test (Green Phase)", "[RHI]
     REQUIRE(mockCmdBuffer.setBlendFuncCalled == true);
     REQUIRE(mockCmdBuffer.lastSFactor == sfactor);
     REQUIRE(mockCmdBuffer.lastDFactor == dfactor);
+}
+
+TEST_CASE("IRHICommandBuffer Depth/Cull State uses RHI enums", "[RHI][DepthState][CullMode]") {
+    using namespace AEngine;
+
+    FMockCommandBuffer mockCmdBuffer;
+    mockCmdBuffer.SetDepthTest(true, false, ERHICompareFunc::GreaterEqual);
+    mockCmdBuffer.SetCullMode(ERHICullMode::Front);
+
+    REQUIRE(mockCmdBuffer.setDepthTestCalled == true);
+    REQUIRE(mockCmdBuffer.lastDepthTestEnabled == true);
+    REQUIRE(mockCmdBuffer.lastDepthWriteEnabled == false);
+    REQUIRE(mockCmdBuffer.lastCompareFunc == ERHICompareFunc::GreaterEqual);
+
+    REQUIRE(mockCmdBuffer.setCullModeCalled == true);
+    REQUIRE(mockCmdBuffer.lastCullMode == ERHICullMode::Front);
 }
 
 // GREEN PHASE: This test now verifies the IRHIDevice::BlitFramebuffer call

@@ -29,6 +29,33 @@ namespace AEngine {
         }
     }
 
+    static GLenum ConvertCompareFunc(ERHICompareFunc func) {
+        switch (func) {
+            case ERHICompareFunc::Never: return GL_NEVER;
+            case ERHICompareFunc::Less: return GL_LESS;
+            case ERHICompareFunc::Equal: return GL_EQUAL;
+            case ERHICompareFunc::LessEqual: return GL_LEQUAL;
+            case ERHICompareFunc::Greater: return GL_GREATER;
+            case ERHICompareFunc::NotEqual: return GL_NOTEQUAL;
+            case ERHICompareFunc::GreaterEqual: return GL_GEQUAL;
+            case ERHICompareFunc::Always: return GL_ALWAYS;
+            default:
+                AE_CORE_ERROR("Unknown ERHICompareFunc!");
+                return GL_LEQUAL;
+        }
+    }
+
+    static GLenum ConvertCullMode(ERHICullMode mode) {
+        switch (mode) {
+            case ERHICullMode::Front: return GL_FRONT;
+            case ERHICullMode::Back: return GL_BACK;
+            case ERHICullMode::FrontAndBack: return GL_FRONT_AND_BACK;
+            case ERHICullMode::None:
+            default:
+                return GL_NONE;
+        }
+    }
+
     void FOpenGLCommandBuffer::Begin() {
         // No-op for immediate GL
     }
@@ -88,20 +115,20 @@ namespace AEngine {
         glBlendFunc(ConvertBlendFactor(sfactor), ConvertBlendFactor(dfactor));
     }
 
-    void FOpenGLCommandBuffer::SetDepthTest(bool enabled, bool writeEnabled, uint32_t func) {
+    void FOpenGLCommandBuffer::SetDepthTest(bool enabled, bool writeEnabled, ERHICompareFunc func) {
         if (enabled) glEnable(GL_DEPTH_TEST);
         else glDisable(GL_DEPTH_TEST);
         
         glDepthMask(writeEnabled ? GL_TRUE : GL_FALSE);
-        glDepthFunc(func);
+        glDepthFunc(ConvertCompareFunc(func));
     }
 
-    void FOpenGLCommandBuffer::SetCullMode(uint32_t mode) {
-        if (mode == 0) {
+    void FOpenGLCommandBuffer::SetCullMode(ERHICullMode mode) {
+        if (mode == ERHICullMode::None) {
             glDisable(GL_CULL_FACE);
         } else {
             glEnable(GL_CULL_FACE);
-            glCullFace(mode);
+            glCullFace(ConvertCullMode(mode));
         }
     }
 
@@ -125,21 +152,8 @@ namespace AEngine {
             
             if (m_currentVBO != glBuf->GetHandle()) {
                 glBindBuffer(GL_ARRAY_BUFFER, glBuf->GetHandle());
-                
-                // Enable attrs (assuming standard layout)
-                glEnableVertexAttribArray(0); glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float)*14, (void*)0);
-                glEnableVertexAttribArray(1); glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float)*14, (void*)(sizeof(float)*3));
-                glEnableVertexAttribArray(2); glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(float)*14, (void*)(sizeof(float)*6));
-                glEnableVertexAttribArray(3); glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(float)*14, (void*)(sizeof(float)*8));
-                glEnableVertexAttribArray(4); glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, sizeof(float)*14, (void*)(sizeof(float)*11));
-                glEnableVertexAttribArray(5); glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(float)*14, (void*)(sizeof(float)*14)); // Wait, offset 14? Color was added?
-                
-                // My FVertex is 3+3+2+3+3+4 floats?
-                // Layout: P(3), N(3), UV(2), T(3), B(3), C(4)
-                // Stride = 3+3+2+3+3+4 = 18 floats
-                // Offsets: 0, 3, 6, 8, 11, 14
-                
-                // Fix layout
+
+                // Standard FVertex layout: P(3), N(3), UV(2), T(3), B(3), C(4)
                 const int stride = sizeof(float) * 18;
                 glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
                 glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float)*3));
@@ -147,6 +161,11 @@ namespace AEngine {
                 glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float)*8));
                 glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float)*11));
                 glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, stride, (void*)(sizeof(float)*14));
+                glEnableVertexAttribArray(0);
+                glEnableVertexAttribArray(1);
+                glEnableVertexAttribArray(2);
+                glEnableVertexAttribArray(3);
+                glEnableVertexAttribArray(4);
                 glEnableVertexAttribArray(5);
 
                 m_currentVBO = glBuf->GetHandle();
@@ -173,6 +192,10 @@ namespace AEngine {
 
     void FOpenGLCommandBuffer::SetUniform(uint32_t location, const glm::mat4& value) {
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+    }
+
+    void FOpenGLCommandBuffer::SetUniform(uint32_t location, const glm::vec2& value) {
+        glUniform2fv(location, 1, glm::value_ptr(value));
     }
 
     void FOpenGLCommandBuffer::SetUniform(uint32_t location, const glm::vec3& value) {

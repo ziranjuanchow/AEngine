@@ -53,18 +53,38 @@ namespace AEngine {
         SrcAlphaSaturate                // GL_SRC_ALPHA_SATURATE
     };
 
+    /// @brief Depth comparison function used by depth testing.
+    enum class ERHICompareFunc {
+        Never,
+        Less,
+        Equal,
+        LessEqual,
+        Greater,
+        NotEqual,
+        GreaterEqual,
+        Always
+    };
+
+    /// @brief Face culling mode.
+    enum class ERHICullMode {
+        None,
+        Front,
+        Back,
+        FrontAndBack
+    };
+
     /// @brief Mask for specifying which buffers to blit (color, depth, stencil).
     enum class ERHIBlitMask {
-        ColorBuffer = 0x00004000, // GL_COLOR_BUFFER_BIT
-        DepthBuffer = 0x00000100, // GL_DEPTH_BUFFER_BIT
-        StencilBuffer = 0x00000400, // GL_STENCIL_BUFFER_BIT
-        All = ColorBuffer | DepthBuffer | StencilBuffer
+        ColorBuffer = 1 << 0,
+        DepthBuffer = 1 << 1,
+        StencilBuffer = 1 << 2,
+        All = 0x7
     };
 
     /// @brief Filter for blitting (nearest, linear).
     enum class ERHIBlitFilter {
-        Nearest = 0x2600, // GL_NEAREST
-        Linear = 0x2601   // GL_LINEAR
+        Nearest,
+        Linear
     };
 
     /// @brief Buffer Usage Hint (for driver optimization).

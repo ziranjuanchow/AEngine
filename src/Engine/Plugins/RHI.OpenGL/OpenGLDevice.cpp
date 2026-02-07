@@ -8,17 +8,19 @@
 // Helper to convert ERHIBlitMask to GLbitfield
 static GLbitfield ConvertBlitMask(AEngine::ERHIBlitMask mask) {
     GLbitfield glMask = 0;
-    if (static_cast<uint32_t>(mask) & static_cast<uint32_t>(AEngine::ERHIBlitMask::ColorBuffer)) glMask |= GL_COLOR_BUFFER_BIT;
-    if (static_cast<uint32_t>(mask) & static_cast<uint32_t>(AEngine::ERHIBlitMask::DepthBuffer)) glMask |= GL_DEPTH_BUFFER_BIT;
-    if (static_cast<uint32_t>(mask) & static_cast<uint32_t>(AEngine::ERHIBlitMask::StencilBuffer)) glMask |= GL_STENCIL_BUFFER_BIT;
+    if ((static_cast<uint32_t>(mask) & static_cast<uint32_t>(AEngine::ERHIBlitMask::ColorBuffer)) != 0) glMask |= GL_COLOR_BUFFER_BIT;
+    if ((static_cast<uint32_t>(mask) & static_cast<uint32_t>(AEngine::ERHIBlitMask::DepthBuffer)) != 0) glMask |= GL_DEPTH_BUFFER_BIT;
+    if ((static_cast<uint32_t>(mask) & static_cast<uint32_t>(AEngine::ERHIBlitMask::StencilBuffer)) != 0) glMask |= GL_STENCIL_BUFFER_BIT;
     return glMask;
 }
 
 // Helper to convert ERHIBlitFilter to GLenum
 static GLenum ConvertBlitFilter(AEngine::ERHIBlitFilter filter) {
     switch (filter) {
-        case AEngine::ERHIBlitFilter::Nearest: return GL_NEAREST;
-        case AEngine::ERHIBlitFilter::Linear: return GL_LINEAR;
+        case AEngine::ERHIBlitFilter::Nearest:
+            return GL_NEAREST;
+        case AEngine::ERHIBlitFilter::Linear:
+            return GL_LINEAR;
         default: return GL_NEAREST; // Fallback
     }
 }
@@ -63,6 +65,10 @@ namespace AEngine { // Reopen namespace for FOpenGLDevice methods
             // If we had a deferred command list, we would execute it here.
             // For now, FOpenGLCommandBuffer executes immediately.
         }
+    }
+
+    void FOpenGLDevice::BindDefaultFramebuffer() {
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
     }
 
     void FOpenGLDevice::BlitFramebuffer(std::shared_ptr<IRHIFramebuffer> source, std::shared_ptr<IRHIFramebuffer> destination, 

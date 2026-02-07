@@ -3,7 +3,10 @@
 namespace AEngine {
 
     void FForwardLitPass::Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) {
-        // We assume clear has been called by the RenderGraph or Main loop for now
+        if (m_outputFramebuffer) {
+            m_outputFramebuffer->Bind();
+            cmdBuffer.SetViewport(0, 0, m_width, m_height);
+        }
         
         for (const auto& renderable : renderables) {
             if (!renderable.Material) continue;
@@ -31,6 +34,10 @@ namespace AEngine {
 
             // 5. Draw
             cmdBuffer.DrawIndexed(renderable.IndexCount);
+        }
+
+        if (m_outputFramebuffer) {
+            m_outputFramebuffer->Unbind();
         }
     }
 

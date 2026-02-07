@@ -15,6 +15,8 @@ namespace AEngine {
         std::shared_ptr<IMaterial> Material;
         glm::mat4 WorldMatrix;
         uint32_t IndexCount;
+        // Coarse bound used by camera frustum culling (local-space sphere radius).
+        float BoundingRadius = 1.0f;
     };
 
     struct FPointLight {
@@ -35,6 +37,7 @@ namespace AEngine {
         glm::mat4 LightSpaceMatrix;
 
         std::vector<FPointLight> PointLights;
+        bool EnableFrustumCulling = true;
     };
 
     class FRenderPass {

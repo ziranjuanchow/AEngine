@@ -18,6 +18,8 @@ namespace AEngine {
         void Resize(uint32_t width, uint32_t height);
         
         std::shared_ptr<IRHIDevice> GetDevice();
+        uint32_t GetDeferredLightingCandidateLights() const;
+        uint32_t GetDeferredLightingVisibleLights() const;
 
     private:
         bool TryInitDevice();

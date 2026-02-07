@@ -1,5 +1,6 @@
 #include "DeferredLightingPass.h"
 #include "Engine.RHI/ShaderCompiler.h"
+#include "Engine.Scene/FrustumCulling.h"
 #include "Kernel/Core/Log.h"
 #include <fstream>
 #include <sstream>
@@ -44,6 +45,8 @@ namespace AEngine {
 
     void FDeferredLightingPass::Execute(IRHICommandBuffer& cmdBuffer, const FRenderContext& context, const std::vector<FRenderable>& renderables) {
         if (!m_pipelineState || !m_gBuffer || !m_sphereVB || !m_sphereIB || m_sphereIndexCount == 0) {
+            m_lastCandidateLightCount = 0;
+            m_lastVisibleLightCount = 0;
             return;
         }
 
@@ -96,15 +99,25 @@ namespace AEngine {
             cmdBuffer.DrawIndexed(m_sphereIndexCount);
         };
 
+        uint32_t visibleLightCount = 0;
         if (!context.PointLights.empty()) {
+            const auto frustumPlanes = FFrustumCulling::ExtractPlanes(context.ProjectionMatrix * context.ViewMatrix);
             const size_t maxLights = std::min<size_t>(32, context.PointLights.size());
+            m_lastCandidateLightCount = static_cast<uint32_t>(maxLights);
             for (size_t i = 0; i < maxLights; ++i) {
                 const auto& light = context.PointLights[i];
+                if (!FFrustumCulling::IsSphereVisible(frustumPlanes, light.Position, light.Radius)) {
+                    continue;
+                }
                 emitLight(light.Position, light.Color, light.Radius, light.Intensity);
+                ++visibleLightCount;
             }
         } else {
+            m_lastCandidateLightCount = 1;
             emitLight(context.LightPosition, context.LightColor, 10.0f, 1.0f);
+            visibleLightCount = 1;
         }
+        m_lastVisibleLightCount = visibleLightCount;
 
         if (m_outputFramebuffer) {
             m_outputFramebuffer->Unbind();

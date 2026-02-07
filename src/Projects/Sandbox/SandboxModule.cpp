@@ -201,6 +201,15 @@ namespace AEngine {
             if (ImGui::DragFloat3("Position", &pos[0], 0.1f)) m_selectedNode->SetPosition(pos);
         }
         ImGui::End();
+
+        ImGui::Begin("Renderer Stats");
+        if (auto* renderModule = FModuleManager::Get().GetModule<URenderModule>("Engine.Renderer")) {
+            ImGui::Text("Deferred Lights (Candidate): %u", renderModule->GetDeferredLightingCandidateLights());
+            ImGui::Text("Deferred Lights (Visible): %u", renderModule->GetDeferredLightingVisibleLights());
+        } else {
+            ImGui::TextUnformatted("Render module unavailable");
+        }
+        ImGui::End();
         
         // Execute deferred actions
         for (auto& action : m_deferredActions) action();

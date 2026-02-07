@@ -33,6 +33,8 @@ namespace AEngine {
         std::shared_ptr<IRHITexture> GetGBufferNormal() const;
         std::shared_ptr<IRHITexture> GetGBufferDepth() const;
         std::shared_ptr<IRHITexture> GetHDRColor() const;
+        uint32_t GetDeferredLightingCandidateLights() const;
+        uint32_t GetDeferredLightingVisibleLights() const;
 
     private:
         std::shared_ptr<IRHIDevice> m_device;

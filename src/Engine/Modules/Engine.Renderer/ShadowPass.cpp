@@ -59,8 +59,12 @@ namespace AEngine {
         // 或者我们暂时先 include glad，手动调用 glUniform。
         
         m_framebuffer->Bind();
+        cmdBuffer.SetDrawBuffers({});
         cmdBuffer.SetViewport(0, 0, m_framebuffer->GetDepthAttachment()->GetWidth(), m_framebuffer->GetDepthAttachment()->GetHeight());
         cmdBuffer.Clear(0,0,0,0, true);
+        cmdBuffer.SetBlendState(false);
+        cmdBuffer.SetDepthTest(true, true, ERHICompareFunc::LessEqual);
+        cmdBuffer.SetCullMode(ERHICullMode::Back);
 
         cmdBuffer.SetPipelineState(m_pipelineState);
         

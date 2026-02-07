@@ -69,6 +69,7 @@ add_library(AEngineRuntime STATIC
     src/Engine/Modules/Engine.Renderer/IBLPreprocessor.cpp
     src/Engine/Modules/Engine.Scene/SceneNode.cpp
     src/Engine/Modules/Engine.Scene/GeometryUtils.cpp
+    src/Engine/Modules/Engine.Scene/FrustumCulling.cpp
     src/Engine/Modules/Engine.RHI/ShaderCompiler.cpp
     src/Engine/Modules/Engine.Asset/AssetLoader.cpp
     src/Projects/Sandbox/SandboxModule.cpp

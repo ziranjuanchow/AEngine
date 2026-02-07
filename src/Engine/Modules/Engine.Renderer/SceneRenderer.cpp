@@ -7,6 +7,7 @@
 #include "StandardPBRMaterial.h"
 #include "Kernel/Core/Log.h"
 #include "Engine.Scene/GeometryUtils.h"
+#include "Engine.Scene/FrustumCulling.h"
 
 namespace AEngine {
 
@@ -120,15 +121,11 @@ namespace AEngine {
         }
     }
 
-    static void ResetRenderState(IRHICommandBuffer& cmdBuffer) {
-        cmdBuffer.SetBlendState(false);
-        cmdBuffer.SetDepthTest(true, true, ERHICompareFunc::LessEqual);
-        cmdBuffer.SetCullMode(ERHICullMode::Back);
-    }
-
     void FSceneRenderer::Render(const FRenderContext& context, 
                                const std::vector<FRenderable>& deferredList,
                                const std::vector<FRenderable>& forwardList) {
+        const auto culledDeferred = FFrustumCulling::CullByCameraFrustum(context, deferredList);
+        const auto culledForward = FFrustumCulling::CullByCameraFrustum(context, forwardList);
         
         for (auto& r : deferredList) {
             if (auto mat = std::dynamic_pointer_cast<FStandardPBRMaterial>(r.Material)) {
@@ -145,20 +142,18 @@ namespace AEngine {
 
         std::vector<FRenderPass*> passes = m_renderGraph->GetPasses();
 
-        ResetRenderState(*m_cmdBuffer);
+        // Shadow pass keeps full list to avoid missing off-screen casters.
         passes[0]->Execute(*m_cmdBuffer, context, deferredList);
 
-        ResetRenderState(*m_cmdBuffer); 
-        passes[1]->Execute(*m_cmdBuffer, context, deferredList);
+        passes[1]->Execute(*m_cmdBuffer, context, culledDeferred);
 
-        passes[2]->Execute(*m_cmdBuffer, context, deferredList);
+        passes[2]->Execute(*m_cmdBuffer, context, culledDeferred);
 
-        ResetRenderState(*m_cmdBuffer);
-        passes[3]->Execute(*m_cmdBuffer, context, forwardList);
+        passes[3]->Execute(*m_cmdBuffer, context, culledForward);
 
         // Final: Post Process -> Screen (target/state handled by pass)
         if (m_postProcessPass) {
-            m_postProcessPass->Execute(*m_cmdBuffer, context, deferredList);
+            m_postProcessPass->Execute(*m_cmdBuffer, context, culledDeferred);
         }
 
         m_cmdBuffer->End();
@@ -172,5 +167,7 @@ namespace AEngine {
     std::shared_ptr<IRHITexture> FSceneRenderer::GetGBufferNormal() const { return m_gBuffer->GetColorAttachment(1); }
     std::shared_ptr<IRHITexture> FSceneRenderer::GetGBufferDepth() const { return m_gBuffer->GetDepthAttachment(); }
     std::shared_ptr<IRHITexture> FSceneRenderer::GetHDRColor() const { return m_hdrLightingFBO->GetColorAttachment(0); }
+    uint32_t FSceneRenderer::GetDeferredLightingCandidateLights() const { return m_lightingPass ? m_lightingPass->GetLastCandidateLightCount() : 0; }
+    uint32_t FSceneRenderer::GetDeferredLightingVisibleLights() const { return m_lightingPass ? m_lightingPass->GetLastVisibleLightCount() : 0; }
 
 }

@@ -22,6 +22,9 @@ namespace AEngine {
             m_sphereIndexCount = count;
         }
 
+        uint32_t GetLastCandidateLightCount() const { return m_lastCandidateLightCount; }
+        uint32_t GetLastVisibleLightCount() const { return m_lastVisibleLightCount; }
+
     private:
         std::shared_ptr<IRHIFramebuffer> m_gBuffer;
         std::shared_ptr<IRHIFramebuffer> m_outputFramebuffer;
@@ -33,6 +36,8 @@ namespace AEngine {
         uint32_t m_sphereIndexCount = 0;
         uint32_t m_width = 1;
         uint32_t m_height = 1;
+        uint32_t m_lastCandidateLightCount = 0;
+        uint32_t m_lastVisibleLightCount = 0;
     };
 
 }

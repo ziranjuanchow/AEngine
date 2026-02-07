@@ -4,6 +4,7 @@
 #include "Engine.Window/WindowModule.h"
 #include "Engine.RHI/RHIModule.h"
 #include <GLFW/glfw3.h> // For glfwGetFramebufferSize
+#include <iostream>
 
 namespace AEngine {
 
@@ -19,25 +20,33 @@ namespace AEngine {
 
     bool URenderModule::TryInitDevice() {
         if (m_device) return true;
+        std::cout << "[RenderModule] TryInitDevice..." << std::endl;
 
         auto* rhiModule = FModuleManager::Get().GetModule<IRHIModule>("RHI.OpenGL");
         if (!rhiModule) {
              // AE_CORE_WARN("RenderModule: RHI.OpenGL module not ready yet.");
+             std::cout << "[RenderModule] RHI.OpenGL not found!" << std::endl;
              return false;
         }
         
+        std::cout << "[RenderModule] Creating Device..." << std::endl;
         AE_CORE_INFO("RenderModule: Initializing Device from RHI.OpenGL");
         m_device = rhiModule->CreateDevice();
+        std::cout << "[RenderModule] Device Created. Creating Renderer..." << std::endl;
         m_renderer = std::make_unique<FSceneRenderer>(m_device);
+        std::cout << "[RenderModule] Renderer Created." << std::endl;
 
         auto* windowMod = FModuleManager::Get().GetModule<UWindowModule>("Engine.Window");
-        if (windowMod) {
+        if (windowMod && windowMod->IsInitialized() && windowMod->GetNativeWindow()) {
              int w, h;
              glfwGetFramebufferSize(windowMod->GetNativeWindow(), &w, &h);
+             std::cout << "[RenderModule] Initializing Renderer with Size: " << w << "x" << h << std::endl;
              m_renderer->Init(w, h);
+             std::cout << "[RenderModule] Renderer Initialized." << std::endl;
         } else {
-             AE_CORE_ERROR("RenderModule: Could not find WindowModule!");
-             m_renderer->Init(1280, 720);
+             AE_CORE_ERROR("RenderModule: Window context not initialized! Aborting renderer initialization.");
+             std::cout << "[RenderModule] Window Context Invalid!" << std::endl;
+             return false;
         }
         return true;
     }
@@ -76,6 +85,14 @@ namespace AEngine {
 
             return m_device;
 
+        }
+
+        uint32_t URenderModule::GetDeferredLightingCandidateLights() const {
+            return m_renderer ? m_renderer->GetDeferredLightingCandidateLights() : 0;
+        }
+
+        uint32_t URenderModule::GetDeferredLightingVisibleLights() const {
+            return m_renderer ? m_renderer->GetDeferredLightingVisibleLights() : 0;
         }
 
     }

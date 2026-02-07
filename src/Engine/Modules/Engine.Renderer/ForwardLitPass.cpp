@@ -7,6 +7,9 @@ namespace AEngine {
             m_outputFramebuffer->Bind();
             cmdBuffer.SetViewport(0, 0, m_width, m_height);
         }
+        cmdBuffer.SetBlendState(false);
+        cmdBuffer.SetDepthTest(true, true, ERHICompareFunc::LessEqual);
+        cmdBuffer.SetCullMode(ERHICullMode::Back);
         
         for (const auto& renderable : renderables) {
             if (!renderable.Material) continue;

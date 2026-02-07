@@ -47,6 +47,9 @@ namespace AEngine {
         cmdBuffer.SetDrawBuffers({ERHIPixelFormat::RGBA8_UNORM, ERHIPixelFormat::RGBA16_FLOAT, ERHIPixelFormat::RGBA8_UNORM});
         cmdBuffer.SetViewport(0, 0, m_gBuffer->GetDepthAttachment()->GetWidth(), m_gBuffer->GetDepthAttachment()->GetHeight());
         cmdBuffer.Clear(0.0f, 0.0f, 0.0f, 1.0f); 
+        cmdBuffer.SetBlendState(false);
+        cmdBuffer.SetDepthTest(true, true, ERHICompareFunc::LessEqual);
+        cmdBuffer.SetCullMode(ERHICullMode::Back);
 
         cmdBuffer.SetPipelineState(m_pipelineState);
         
